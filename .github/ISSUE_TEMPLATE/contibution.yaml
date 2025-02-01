@@ -1,8 +1,31 @@
-# Template for content submission
 name: Submit Content
 description: Submit a character, custom code, or lorebook
+title: "[Contribution] "
 labels: ["contribution"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for contributing to our repository! Please fill out the information below carefully.
+        
+        Before proceeding, make sure you have read our [Contribution Guidelines](/documentation/contributing.md).
+  
+  - type: input
+    id: content-name
+    attributes:
+      label: Content Name
+      description: Name for your character, lorebook, etc
+    validations:
+      required: true
+  
+  - type: input
+    id: author
+    attributes:
+      label: Author Name
+      description: Your preferred attribution name
+    validations:
+      required: true
+  
   - type: dropdown
     id: content-type
     attributes:
@@ -13,43 +36,7 @@ body:
         - Lorebook
     validations:
       required: true
-  - type: input
-    id: content-name
-    attributes:
-      label: Content Name
-      description: Name for your submission
-    validations:
-      required: true
-  - type: input
-    id: author
-    attributes:
-      label: Author Name
-      description: Your preferred attribution name
-    validations:
-      required: true
-  - type: input
-    id: perchance-url
-    attributes:
-      label: Perchance Share URL
-      description: For character submissions only
-  - type: textarea
-    id: custom-code
-    attributes:
-      label: Custom Code
-      description: For custom code submissions only
-      render: javascript
-  - type: textarea
-    id: lorebook
-    attributes:
-      label: Lorebook Content
-      description: For lorebook submissions only
-  - type: textarea
-    id: readme
-    attributes:
-      label: README Content
-      description: Description and documentation for your submission
-    validations:
-      required: true
+  
   - type: dropdown
     id: rating
     attributes:
@@ -59,3 +46,61 @@ body:
         - NSFW
     validations:
       required: true
+  
+  - type: input
+    id: perchance-url
+    attributes:
+      label: Perchance Character Share Link
+      description: For character submissions only. See [here](/documentation/contributing.md) how to get the link.
+  
+  - type: textarea
+    id: custom-code
+    attributes:
+      label: Custom Code
+      description: For isolated custom code submissions only.
+      render: javascript
+  
+  - type: textarea
+    id: lorebook
+    attributes:
+      label: Lorebook Content
+      description: For lorebook submissions only. Each sentence separated by double line breaks. For more information, [look here](https://rentry.org/fptk4).
+      render: plain
+      placeholder: |
+      First sentence
+      
+      Second sentence
+      
+      Third sentence
+  
+  - type: textarea
+    id: readme
+    attributes:
+      label: README Content
+      description: Description and documentation for your submission
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Legal Confirmations
+        
+        Please carefully read and confirm the following statements:
+  
+  - type: checkboxes
+    id: legal-confirmations
+    attributes:
+      label: Legal Confirmations
+      options:
+        - label: I confirm that this content does not violate any laws, repository rules, or policies, including but not limited to copyright, intellectual property rights, and content guidelines.
+          required: true
+        - label: I agree to release this content under the MIT License, granting permission for others to use, modify, and distribute it under the same terms as the repository.
+          required: true
+        - label: I understand that if this content is found to violate any laws or policies, it may be removed without prior notice, and I may be held legally responsible for any violations.
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        By submitting this form, you acknowledge that your GitHub username will be recorded and associated with this contribution for attribution and accountability purposes.
