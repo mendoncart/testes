@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Project Documentation
-    url: README.md
+    url: ./README.md
     about: Check our documentation first
   - name: Discord Community
     url: https://discord.gg/your-server
