@@ -48,6 +48,12 @@ body:
       required: true
   
   - type: input
+    id: image-url
+    attributes:
+      label: Image URL for your content
+      description: Host your image [here](https://perchance.org/upload). Image is required for character submissions.
+  
+  - type: input
     id: perchance-url
     attributes:
       label: Perchance Character Share Link
