@@ -6,3 +6,6 @@ contact_links:
   - name: Discord Community
     url: https://discord.gg/your-server
     about: Discuss your ideas with the community
+  - name: Questions & Discussions
+    url: https://github.com/mendoncart/testes/discussions
+    about: Ask questions, share ideas, and discuss issues
