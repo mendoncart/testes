@@ -1,0 +1,173 @@
+# Template for reporting illegal/rule-breaking content
+name: Report Content
+description: Report content that violates rules or laws
+labels: ["report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please use this form to report inappropriate or illegal content.
+  - type: input
+    id: content-url
+    attributes:
+      label: Content Location
+      description: Link to the content (folder path or direct link)
+      placeholder: "e.g., characters/sfw/character-name"
+    validations:
+      required: true
+  - type: dropdown
+    id: violation-type
+    attributes:
+      label: Type of Violation
+      options:
+        - Copyright Infringement
+        - Illegal Content
+        - Against Community Guidelines
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Provide specific details about the violation
+    validations:
+      required: true
+
+---
+# Template for feature requests
+name: Feature Request
+description: Suggest an enhancement or new feature
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Repository Structure
+        - Portal
+        - Documentation
+        - Tools/Scripts
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the feature you'd like to see
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: If you have a specific solution in mind, describe it here
+
+---
+# Template for category/tag requests
+name: New Category/Tag Request
+description: Request new categories or tags
+labels: ["category"]
+body:
+  - type: dropdown
+    id: request-type
+    attributes:
+      label: Request Type
+      options:
+        - New Category
+        - New Tag(s) for Existing Category
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: category-name
+    attributes:
+      label: Category Name
+      description: For new categories only
+  - type: textarea
+    id: tags
+    attributes:
+      label: Proposed Tags
+      description: List the tags you'd like to add
+  - type: dropdown
+    id: nsfw
+    attributes:
+      label: Content Rating
+      options:
+        - SFW
+        - NSFW
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: justification
+    attributes:
+      label: Justification
+      description: Explain why these additions would be useful
+    validations:
+      required: true
+
+---
+# Template for content submission
+name: Submit Content
+description: Submit a character, custom code, or lorebook
+labels: ["contribution"]
+body:
+  - type: dropdown
+    id: content-type
+    attributes:
+      label: Content Type
+      options:
+        - Character
+        - Custom Code
+        - Lorebook
+    validations:
+      required: true
+  - type: input
+    id: content-name
+    attributes:
+      label: Content Name
+      description: Name for your submission
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: Author Name
+      description: Your preferred attribution name
+    validations:
+      required: true
+  - type: input
+    id: perchance-url
+    attributes:
+      label: Perchance Share URL
+      description: For character submissions only
+  - type: textarea
+    id: custom-code
+    attributes:
+      label: Custom Code
+      description: For custom code submissions only
+      render: javascript
+  - type: textarea
+    id: lorebook
+    attributes:
+      label: Lorebook Content
+      description: For lorebook submissions only
+  - type: textarea
+    id: readme
+    attributes:
+      label: README Content
+      description: Description and documentation for your submission
+    validations:
+      required: true
+  - type: dropdown
+    id: rating
+    attributes:
+      label: Content Rating
+      options:
+        - SFW
+        - NSFW
+    validations:
+      required: true
