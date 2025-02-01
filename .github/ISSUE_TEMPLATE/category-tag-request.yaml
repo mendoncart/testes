@@ -1,4 +1,4 @@
-name: New Category or Tag Request
+name: 🏷️ Category or Tag Request
 description: Request new categories or tags for content classification
 labels: ["category", "enhancement"]
 body:
@@ -16,28 +16,10 @@ body:
           required: true
 
   - type: dropdown
-    id: request-type
-    attributes:
-      label: Request Type
-      options:
-        - New Category
-        - New Tag(s) for Existing Category
-        - Both
-    validations:
-      required: true
-
-  - type: input
-    id: category-name
-    attributes:
-      label: Category Name
-      description: For new categories only. Leave blank if requesting new tags.
-      placeholder: "e.g., Personality Traits"
-
-  - type: dropdown
     id: existing-category
     attributes:
       label: Existing Category
-      description: If adding tags to an existing category, select it here
+      description: Select an existing category, or leave at 'None' to add a new one.
       options:
         - None (New Category)
         - Rating
@@ -49,7 +31,26 @@ body:
         - Personality
         - Fetishes
     validations:
-      required: true
+      required: true  
+
+  - type: input
+    id: category-name
+    attributes:
+      label: └── New category Name
+      description: Leave it blank if adding tags to existent category.
+      placeholder: "e.g., Personality Traits"
+
+  - type: dropdown
+    id: category-rating
+    attributes:
+      label: └── New category Rating
+      description: Should this new category be general or NSFW?
+      options:
+        - General (SFW)
+        - NSFW Only
+        - Both SFW and NSFW
+    validations:
+      required: false
 
   - type: textarea
     id: proposed-tags
@@ -60,18 +61,6 @@ body:
         Tag 1
         Tag 2
         Tag 3
-    validations:
-      required: true
-
-  - type: dropdown
-    id: content-rating
-    attributes:
-      label: Content Rating
-      description: Should these tags be general or NSFW?
-      options:
-        - General (SFW)
-        - NSFW Only
-        - Both SFW and NSFW
     validations:
       required: true
 
@@ -90,7 +79,7 @@ body:
   - type: textarea
     id: examples
     attributes:
-      label: Example Characters
+      label: Example Characters (Optional)
       description: List some example characters that would use these categories/tags
       placeholder: |
         - Character 1: Would use tags X, Y
@@ -99,5 +88,5 @@ body:
   - type: textarea
     id: additional-context
     attributes:
-      label: Additional Context
+      label: Additional Context (Optional)
       description: Any other information that might be relevant to your request?
