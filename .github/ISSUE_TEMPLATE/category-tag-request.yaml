@@ -41,7 +41,7 @@ body:
       placeholder: "e.g., Personality Traits"
 
   - type: textarea
-    id: proposed-tags
+    id: proposed-sfw-tags
     attributes:
       label: Proposed SFW Tags
       description: List the tags you'd like to add, one per line
@@ -53,7 +53,7 @@ body:
       required: false
 
   - type: textarea
-    id: proposed-tags
+    id: proposed-nsfw-tags
     attributes:
       label: Proposed NSFW Tags
       description: List the tags you'd like to add, one per line
