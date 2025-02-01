@@ -1,7 +1,7 @@
 # Template for feature/enhancement requests
 name: 🔼 Feature Request
 description: Suggest an enhancement or new feature
-title: [Feature Request] 
+title: "[Feature Request] "
 labels: ["enhancement"]
 body:
   - type: checkboxes
