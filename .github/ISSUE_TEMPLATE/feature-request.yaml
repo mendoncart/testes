@@ -1,6 +1,7 @@
 # Template for feature/enhancement requests
-name: Feature Request
+name: 🔼 Feature Request
 description: Suggest an enhancement or new feature
+title: [Feature Request] 
 labels: ["enhancement"]
 body:
   - type: checkboxes
@@ -37,10 +38,11 @@ body:
       label: Perceived Priority
       description: How important do you think this feature is?
       options:
-        - Critical (Blocks usage)
-        - High (Major improvement)
-        - Medium (Nice to have)
         - Low (Minor enhancement)
+        - Medium (Nice to have)
+        - High (Major improvement)
+        - Critical (Blocks usage)
+      default: 0
     validations:
       required: true
 
