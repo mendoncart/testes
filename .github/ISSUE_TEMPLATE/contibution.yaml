@@ -66,11 +66,9 @@ body:
       label: Lorebook Content
       description: For lorebook submissions only. Each sentence separated by double line breaks. For more information, [look here](https://rentry.org/fptk4).
       render: plain
-      placeholder: |
+      placeholder: "|
       First sentence
-      
       Second sentence
-      
       Third sentence
   
   - type: textarea
