@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project Documentation
+    url: ../../docs/
+    about: Check our documentation first
+  - name: Discord Community
+    url: https://discord.gg/your-server
+    about: Discuss your ideas with the community
