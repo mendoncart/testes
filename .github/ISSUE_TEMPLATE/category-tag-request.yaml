@@ -40,29 +40,29 @@ body:
       description: Leave it blank if adding tags to existent category.
       placeholder: "e.g., Personality Traits"
 
-  - type: dropdown
-    id: category-rating
-    attributes:
-      label: └── New category Rating
-      description: Should this new category be general or NSFW?
-      options:
-        - General (SFW)
-        - NSFW Only
-        - Both SFW and NSFW
-    validations:
-      required: false
-
   - type: textarea
     id: proposed-tags
     attributes:
-      label: Proposed Tags
+      label: Proposed SFW Tags
       description: List the tags you'd like to add, one per line
       placeholder: |
         Tag 1
         Tag 2
         Tag 3
     validations:
-      required: true
+      required: false
+
+  - type: textarea
+    id: proposed-tags
+    attributes:
+      label: Proposed NSFW Tags
+      description: List the tags you'd like to add, one per line
+      placeholder: |
+        Tag 1
+        Tag 2
+        Tag 3
+    validations:
+      required: false
 
   - type: textarea
     id: justification
