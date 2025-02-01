@@ -1,0 +1,61 @@
+# Template for content submission
+name: Submit Content
+description: Submit a character, custom code, or lorebook
+labels: ["contribution"]
+body:
+  - type: dropdown
+    id: content-type
+    attributes:
+      label: Content Type
+      options:
+        - Character
+        - Custom Code
+        - Lorebook
+    validations:
+      required: true
+  - type: input
+    id: content-name
+    attributes:
+      label: Content Name
+      description: Name for your submission
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: Author Name
+      description: Your preferred attribution name
+    validations:
+      required: true
+  - type: input
+    id: perchance-url
+    attributes:
+      label: Perchance Share URL
+      description: For character submissions only
+  - type: textarea
+    id: custom-code
+    attributes:
+      label: Custom Code
+      description: For custom code submissions only
+      render: javascript
+  - type: textarea
+    id: lorebook
+    attributes:
+      label: Lorebook Content
+      description: For lorebook submissions only
+  - type: textarea
+    id: readme
+    attributes:
+      label: README Content
+      description: Description and documentation for your submission
+    validations:
+      required: true
+  - type: dropdown
+    id: rating
+    attributes:
+      label: Content Rating
+      options:
+        - SFW
+        - NSFW
+    validations:
+      required: true
