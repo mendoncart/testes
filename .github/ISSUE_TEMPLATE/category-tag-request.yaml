@@ -16,13 +16,6 @@ body:
           required: true
 
   # BEGIN_CATEGORIES_OPTIONS
-  # This section will be automatically updated based on categories.json
-  - type: dropdown
-    id: existing-category
-    attributes:
-      label: Existing Category
-      description: Select an existing category, or leave at 'None' to add a new one.
-      options:
         - None (New Category)
         - Rating
         - Species
@@ -32,8 +25,6 @@ body:
         - Role
         - Personality
         - Fetishes
-    validations:
-      required: true
   # END_CATEGORIES_OPTIONS
 
   - type: input
