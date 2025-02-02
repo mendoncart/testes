@@ -181,5 +181,7 @@ class TemplateUpdater:
         print("Template updates completed successfully")
 
 if __name__ == "__main__":
+    print("Starting TemplateUpdater execution...")
     updater = TemplateUpdater()
     updater.update_all_templates()
+    print("Script completed successfully!")
