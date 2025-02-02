@@ -137,7 +137,7 @@ class TemplateUpdater:
         """
         Update the category request template with current categories
         """
-        template_path = f"{self.template_dir}/category-request.yaml"
+        template_path = f"{self.template_dir}/category-tag-request.yaml"
         print(f"Updating category request template: {template_path}")
         
         try:
