@@ -15,6 +15,8 @@ body:
         - label: I have checked if my request could fit within existing categories
           required: true
 
+  # BEGIN_CATEGORIES_OPTIONS
+  # This section will be automatically updated based on categories.json
   - type: dropdown
     id: existing-category
     attributes:
@@ -31,7 +33,8 @@ body:
         - Personality
         - Fetishes
     validations:
-      required: true  
+      required: true
+  # END_CATEGORIES_OPTIONS
 
   - type: input
     id: category-name
