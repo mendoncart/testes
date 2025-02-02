@@ -1,0 +1,174 @@
+[
+    {
+        "name": "Rating",
+        "description": "Content maturity level",
+        "tags": {
+            "general": ["SFW", "NSFW"],
+            "nsfw": []
+        },
+        "required": true,
+        "nsfw_only": false
+    },
+    {
+        "name": "Species",
+        "description": "Character's species or race",
+        "tags": {
+            "general": [
+                "Human",
+                "Elf",
+                "Orc",
+                "Dragon",
+                "Angel",
+                "Demon",
+                "Vampire",
+                "Werewolf",
+                "Android",
+                "AI",
+                "Ghost",
+                "Alien"
+            ],
+            "nsfw": [
+                "Succubus",
+                "Incubus"
+            ]
+        },
+        "required": true,
+        "nsfw_only": false
+    },
+    {
+        "name": "Gender",
+        "description": "Character's gender identity",
+        "tags": {
+            "general": [
+                "Male",
+                "Female",
+                "Non-binary",
+                "Genderfluid",
+                "Agender"
+            ],
+            "nsfw": [
+                "Futanari",
+                "Gender Transformation"
+            ]
+        },
+        "required": true,
+        "nsfw_only": false
+    },
+    {
+        "name": "Genre",
+        "description": "Story type or style",
+        "tags": {
+            "general": [
+                "Fantasy",
+                "Sci-Fi",
+                "Horror",
+                "Adventure",
+                "Romance",
+                "Mystery",
+                "Comedy",
+                "Drama",
+                "Historical",
+                "Slice of Life",
+                "Action",
+                "Thriller",
+                "RPG"
+            ],
+            "nsfw": [
+                "Erotic",
+                "Sexual Roleplay",
+                "Fetish"
+            ]
+        },
+        "required": true,
+        "nsfw_only": false
+    },
+    {
+        "name": "Source",
+        "description": "Source of inspiration",
+        "tags": {
+            "general": [
+                "Anime",
+                "Manga",
+                "Movie",
+                "Book",
+                "TV Show",
+                "Game",
+                "Fanfiction",
+                "Original"
+            ],
+            "nsfw": [
+                "Hentai",
+                "Adult Film",
+                "Doujinshi"
+            ]
+        },
+        "required": true,
+        "nsfw_only": false
+    },
+    {
+        "name": "Role",
+        "description": "Character's primary role or occupation",
+        "tags": {
+            "general": [
+                "Student",
+                "Teacher",
+                "Warrior",
+                "Mage",
+                "Healer",
+                "Merchant",
+                "Royalty",
+                "Villain",
+                "Hero",
+                "Servant",
+                "Professional",
+                "Artist"
+            ],
+            "nsfw": []
+        },
+        "required": false,
+        "nsfw_only": false
+    },
+    {
+        "name": "Personality",
+        "description": "Character's primary personality traits",
+        "tags": {
+            "general": [
+                "Friendly",
+                "Shy",
+                "Confident",
+                "Aggressive",
+                "Caring",
+                "Mysterious",
+                "Cheerful",
+                "Serious",
+                "Playful",
+                "Reserved"
+            ],
+            "nsfw": [
+                "Dominant",
+                "Submissive",
+                "Teasing"
+            ]
+        },
+        "required": false,
+        "nsfw_only": false
+    },
+    {
+        "name": "Fetishes",
+        "description": "Adult-themed interests",
+        "tags": {
+            "general": [],
+            "nsfw": [
+                "BDSM",
+                "Feet",
+                "Roleplay",
+                "Voyeurism",
+                "Bondage",
+                "Pet Play",
+                "Size Difference"
+            ]
+        },
+        "required": false,
+        "nsfw_only": true
+    }
+]
