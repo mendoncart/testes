@@ -1,3 +1,4 @@
+# contribution.yaml
 name: 🎁 Submit Content
 description: Submit a character, custom code, or lorebook
 title: "[Contribution] "
@@ -10,11 +11,20 @@ body:
         
         Before proceeding, make sure you have read our [Contribution Guidelines](/documentation/contributing.md).
   
+  # Basic Information
   - type: input
     id: content-name
     attributes:
       label: Content Name
       description: Name for your character, lorebook, etc
+    validations:
+      required: true
+  
+  - type: input
+    id: description
+    attributes:
+      label: Short Description
+      description: A brief description of your content (max 150 characters)
     validations:
       required: true
   
@@ -41,12 +51,14 @@ body:
     id: rating
     attributes:
       label: Content Rating
+      description: This will determine content visibility and available tags
       options:
         - SFW
         - NSFW
     validations:
       required: true
   
+  # Content Type Specific Fields
   - type: input
     id: image-url
     attributes:
@@ -70,7 +82,7 @@ body:
     id: lorebook
     attributes:
       label: Lorebook Content
-      description: For lorebook submissions only. Each sentence separated by double line breaks. For more information, [look here](https://rentry.org/fptk4).
+      description: For lorebook submissions only. Each sentence separated by double line breaks.
       render: plain
       placeholder: |
         First sentence
@@ -87,6 +99,62 @@ body:
     validations:
       required: true
 
+  # Categories Section
+  - type: markdown
+    attributes:
+      value: |
+        ## Content Categories
+        
+        The following categories help users find your content. While optional, proper categorization is highly recommended.
+        Missing a category or tag? You can request new ones [here](../../issues/new?labels=category-request).
+        
+        Note: Some tags are only valid for NSFW content and will be filtered accordingly.
+
+  # BEGIN_CATEGORIES
+  # This section will be automatically updated based on categories.json
+  - type: dropdown
+    id: species
+    attributes:
+      label: Species
+      description: Character's species or race
+      multiple: true
+      options:
+        - Human
+        - Elf
+        - Orc
+        - Dragon
+        - Angel
+        - Demon
+        - Vampire
+        - Werewolf
+        - Android
+        - AI
+        - Ghost
+        - Alien
+        - Succubus
+        - Incubus
+    validations:
+      required: false
+
+  - type: dropdown
+    id: gender
+    attributes:
+      label: Gender
+      description: Character's gender identity
+      multiple: true
+      options:
+        - Male
+        - Female
+        - Non-binary
+        - Genderfluid
+        - Agender
+        - Futanari
+        - Gender Transformation
+    validations:
+      required: false
+  # END_CATEGORIES
+
+  # Legal Section
   - type: markdown
     attributes:
       value: |
@@ -105,8 +173,3 @@ body:
           required: true
         - label: I understand that if this content is found to violate any laws or policies, it may be removed without prior notice, and I may be held legally responsible for any violations.
           required: true
-
-  - type: markdown
-    attributes:
-      value: |
-        By submitting this form, you acknowledge that your GitHub username will be recorded and associated with this contribution for attribution and accountability purposes.
