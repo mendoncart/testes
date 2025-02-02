@@ -36,8 +36,8 @@ jobs:
       - name: Debug Directory Structure
         run: ls -R .github/ISSUE_TEMPLATE/
 
-      - name: Debug Issue Template Files
-        run: ls -l .github/ISSUE_TEMPLATE/
+      - name: Debug Scripts Directory
+        run: ls -l .github/scripts/
 
       - name: Debug File Permissions
         run: ls -l .github/ISSUE_TEMPLATE/
@@ -49,14 +49,8 @@ jobs:
       - name: Update Templates
         id: update-templates
         run: |
-          # Run the script and capture its output
-          output=$(python .github/scripts/update_categories_on_templates.py)
-          echo "$output"
-          # If the script exited with an error, fail the workflow
-          if [ $? -ne 0 ]; then
-            echo "Script failed with error code $?"
-            exit 1
-          fi
+          python .github/scripts/update_categories_on_templates.py
+
       
       - name: Check for Changes
         id: check-changes
