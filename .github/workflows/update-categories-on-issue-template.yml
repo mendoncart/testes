@@ -68,6 +68,7 @@ jobs:
         id: create-pr
         uses: peter-evans/create-pull-request@v5
         with:
+          token: ${{ secrets.PAT_GITHUB_ACTIONS }}
           commit-message: "chore: update categories in issue templates"
           title: "Update categories in issue templates"
           body: |
