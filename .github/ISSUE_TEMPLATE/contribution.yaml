@@ -103,7 +103,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Content Categories (Optional, but recommended)
+        ## Content Categories
         
         The following categories help users find your content. 
         While **optional**, proper categorization is **highly recommended**, because it helps users search and find your content.  
