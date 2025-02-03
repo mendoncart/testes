@@ -2,7 +2,7 @@ name: Process Contribution Issues
 
 on:
   issues:
-    types: [opened, edited, workflow_dispatch]
+    types: [opened, edited]
   workflow_dispatch:
     inputs:
       issue_number:
@@ -18,9 +18,11 @@ permissions:
 jobs:
   process-contribution:
     # Only run if the issue has 'contribution' label and not 'AUTO PR Created'
-    if: >
-      contains(github.event.issue.labels.*.name, 'contribution') && 
-      !contains(github.event.issue.labels.*.name, 'AUTO PR Created')
+    if: |
+      (github.event_name == 'issues' && 
+       contains(github.event.issue.labels.*.name, 'contribution') && 
+       !contains(github.event.issue.labels.*.name, 'AUTO PR Created')) ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
