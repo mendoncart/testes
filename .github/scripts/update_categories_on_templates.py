@@ -142,7 +142,8 @@ class TemplateUpdater:
         
         try:
             # Generate the full dropdown structure with updated categories
-            categories_dropdown = """  - type: dropdown
+            categories_dropdown = """  
+        - type: dropdown
         id: existing-category
         attributes:
           label: Existing Category
