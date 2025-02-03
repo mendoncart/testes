@@ -18,7 +18,7 @@ jobs:
       (github.event_name == 'issues' && 
        contains(github.event.issue.labels.*.name, 'contribution') && 
        !contains(github.event.issue.labels.*.name, 'PR Generated')) ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name == 'workflow_dispatch' && !contains(github.event.issue.labels.*.name, 'PR Generated')
     
     runs-on: ubuntu-latest
     
