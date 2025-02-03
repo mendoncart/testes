@@ -114,18 +114,6 @@ body:
   # This section will be automatically updated based on categories.json
   # BEGIN_CATEGORIES
   - type: dropdown
-    id: rating
-    attributes:
-      label: Rating
-      description: Content maturity level
-      multiple: true
-      options:
-        - NSFW
-        - SFW
-    validations:
-      required: true
-
-  - type: dropdown
     id: species
     attributes:
       label: Species
