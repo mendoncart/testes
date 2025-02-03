@@ -103,10 +103,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Content Categories
+        ## Content Categories (Optional, but recommended)
         
         The following categories help users find your content. 
-        While **optional**, proper categorization is **highly recommended**.  
+        While **optional**, proper categorization is **highly recommended**, because it helps users search and find your content.  
           
         > **Note:** Some tags are only valid for NSFW content and will be filtered accordingly.
         _Missing a category or tag? You can request new ones [here](../../issues/new?labels=category-request)._
