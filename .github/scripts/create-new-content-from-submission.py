@@ -1,4 +1,4 @@
-# content_submission_processer.py
+# create-new-content-from-submission.py
 # Process new content submissions creating PR with appropriate file structure to add it to the repository
 import os
 import json
