@@ -61,8 +61,8 @@ class ContributionProcessor:
         :return: Name of the created branch
         """
         base_branch = self.repo.get_branch('main')
-        #branch_name = f'contribution/{self.body.get("content_name", "unnamed")}'
-        branch_name = f"contribution/{self.issue_number}"
+        branch_name = f'contribution/{self.body.get("content_name", "unnamed")}'
+        #branch_name = f"contribution/{self.issue_number}"
         print(f"DEBUG: Creating branch {branch_name}")
         
         # Create branch from main
