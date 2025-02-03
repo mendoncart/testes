@@ -144,12 +144,12 @@ class TemplateUpdater:
             # Generate the full dropdown structure with updated categories
             # Note: YAML indentation is 2 spaces for each level
             categories_dropdown = """  - type: dropdown
-        id: existing-category
-        attributes:
-          label: Existing Category
-          description: Select an existing category, or leave at 'None' to add a new one.
-          options:
-            - None (New Category)"""
+    id: existing-category
+    attributes:
+      label: Existing Category
+      description: Select an existing category, or leave at 'None' to add a new one.
+      options:
+        - None (New Category)"""
             
             # Add each category as an option with proper indentation
             for category in self.categories:
