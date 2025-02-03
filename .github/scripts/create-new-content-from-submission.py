@@ -62,6 +62,12 @@ def parse_issue_body(issue_body):
         if field_match:
             current_field = slugify(field_match.group(1).lower(), separator='_')
 
+            # Special handling for specific fields
+            if current_field == 'content_type':
+                current_field = 'content-type'
+            elif current_field == 'content_rating':
+                current_field = 'rating'
+
             # Reset current_field if it's in ignore list or a category
             if current_field in ignore_fields or current_field in category_fields:
                 parsed_data[current_field] = []
