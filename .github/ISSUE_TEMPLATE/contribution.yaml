@@ -136,7 +136,7 @@ body:
         - Vampire
         - Werewolf
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: gender
@@ -153,7 +153,7 @@ body:
         - Male
         - Non-binary
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: genre
@@ -179,7 +179,7 @@ body:
         - Slice of Life
         - Thriller
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: source
@@ -200,7 +200,7 @@ body:
         - Original
         - TV Show
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: role
