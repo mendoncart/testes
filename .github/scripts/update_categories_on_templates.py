@@ -134,55 +134,55 @@ class TemplateUpdater:
             sys.exit(1)
             
     def update_category_request_template(self):
+        """
+        Update the category request template with current categories
+        """
+        template_path = f"{self.template_dir}/category-request.yaml"
+        print(f"Updating category request template: {template_path}")
+        
+        try:
+            # Generate the full dropdown structure with updated categories
+            categories_dropdown = """  - type: dropdown
+        id: existing-category
+        attributes:
+          label: Existing Category
+          description: Select an existing category, or leave at 'None' to add a new one.
+          options:
+            - None (New Category)
     """
-    Update the category request template with current categories
-    """
-    template_path = f"{self.template_dir}/category-request.yaml"
-    print(f"Updating category request template: {template_path}")
-    
-    try:
-        # Generate the full dropdown structure with updated categories
-        categories_dropdown = """  - type: dropdown
-    id: existing-category
-    attributes:
-      label: Existing Category
-      description: Select an existing category, or leave at 'None' to add a new one.
-      options:
-        - None (New Category)
-"""
-        # Add each category as an option
-        for category in self.categories:
-            categories_dropdown += f"        - {category['name']}\n"
+            # Add each category as an option
+            for category in self.categories:
+                categories_dropdown += f"        - {category['name']}\n"
+                
+            # Add the required validation
+            categories_dropdown += """    validations:
+          required: true"""
             
-        # Add the required validation
-        categories_dropdown += """    validations:
-      required: true"""
-        
-        # Read the template file
-        if os.path.exists(template_path):
-            with open(template_path, 'r') as f:
-                template = f.read()
-            print("Successfully read existing category request template")
-        else:
-            print("ERROR: Category request template not found!")
+            # Read the template file
+            if os.path.exists(template_path):
+                with open(template_path, 'r') as f:
+                    template = f.read()
+                print("Successfully read existing category request template")
+            else:
+                print("ERROR: Category request template not found!")
+                sys.exit(1)
+            
+            # Replace the categories options section
+            new_template = re.sub(
+                r'  # BEGIN_CATEGORIES_OPTIONS.*?  # END_CATEGORIES_OPTIONS',
+                f'  # BEGIN_CATEGORIES_OPTIONS\n{categories_dropdown}\n  # END_CATEGORIES_OPTIONS',
+                template,
+                flags=re.DOTALL
+            )
+            
+            # Save the updated template
+            with open(template_path, 'w') as f:
+                f.write(new_template)
+            print("Successfully updated category request template")
+            
+        except Exception as e:
+            print(f"ERROR: Failed to update category request template: {e}")
             sys.exit(1)
-        
-        # Replace the categories options section
-        new_template = re.sub(
-            r'  # BEGIN_CATEGORIES_OPTIONS.*?  # END_CATEGORIES_OPTIONS',
-            f'  # BEGIN_CATEGORIES_OPTIONS\n{categories_dropdown}\n  # END_CATEGORIES_OPTIONS',
-            template,
-            flags=re.DOTALL
-        )
-        
-        # Save the updated template
-        with open(template_path, 'w') as f:
-            f.write(new_template)
-        print("Successfully updated category request template")
-        
-    except Exception as e:
-        print(f"ERROR: Failed to update category request template: {e}")
-        sys.exit(1)
     
     def update_all_templates(self):
         """
