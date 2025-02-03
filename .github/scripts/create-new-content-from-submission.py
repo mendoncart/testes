@@ -13,6 +13,11 @@ def parse_issue_body(issue_body):
     """
     Parse the GitHub issue body, extracting only specific fields
     """
+    # Debug: Print raw issue body for inspection
+    print("\n--- RAW ISSUE_BODY START ---\n")
+    print(issue_body)
+    print("\n--- RAW ISSUE_BODY END ---\n")
+    
     # Load categories dynamically from categories.json
     with open('categories.json', 'r') as f:
         categories_data = json.load(f)
@@ -39,6 +44,9 @@ def parse_issue_body(issue_body):
     for line in lines:
         # Remove markdown formatting
         line = line.strip()
+
+        # Debug: Print each line being processed
+        print(f"Processing line: {repr(line)}")
         
         # Skip empty lines and markdown headers
         if not line or line.startswith('##') or line.startswith('<'):
@@ -48,6 +56,9 @@ def parse_issue_body(issue_body):
         field_match = re.match(r'^### (.+)$', line)
         if field_match:
             current_field = slugify(field_match.group(1).lower(), separator='_')
+
+            # Debug: Print detected field
+            print(f"Detected field: {current_field}")
             
             # Reset current_field if it's in ignore list
             if current_field in ignore_fields or current_field in category_fields:
@@ -74,6 +85,11 @@ def parse_issue_body(issue_body):
                 parsed_data[current_field] = line
             else:
                 parsed_data[current_field] += '\n' + line
+
+    # Debug: Print parsed data before cleanup
+    print("\n--- PARSED DATA BEFORE CLEANUP ---\n")
+    print(json.dumps(parsed_data, indent=2))
+    print("\n--- PARSED DATA END ---\n")
     
     # Final processing
     for field in ignore_fields:
