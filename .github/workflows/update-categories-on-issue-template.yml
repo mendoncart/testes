@@ -70,7 +70,7 @@ jobs:
         with:
           token: ${{ secrets.PAT_GITHUB_ACTIONS }}
           commit-message: "chore: update categories in issue templates"
-          title: "Update categories in issue templates"
+          title: "[Automatic Action] Update categories in issue templates"
           body: |
             Automatically updated categories in the issue templates based on changes to categories.json
             
