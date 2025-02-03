@@ -2,7 +2,7 @@ name: Process Contribution Issues
 
 on:
   issues:
-    types: [opened, workflow_dispatch]
+    types: [opened, edited, workflow_dispatch]
   workflow_dispatch:
     inputs:
       issue_number:
