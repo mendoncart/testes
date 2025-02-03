@@ -11,21 +11,77 @@ import requests
 
 def parse_issue_body(issue_body):
     """
-    Parse the GitHub issue body, which is in YAML-like format
+    Parse the GitHub issue body, extracting only specific fields
     """
-    # Remove any markdown sections
-    print("RAW ISSUE_BODY:\n", issue_body)
-    lines = [line for line in issue_body.split('\n') if not line.startswith('##')]
-    print("Filtered ISSUE_BODY content:\n", lines)
-
-    try:
-        # Tentar carregar o YAML
-        parsed_body = yaml.safe_load('\n'.join(lines))
-    except yaml.YAMLError as e:
-        print("YAML Parsing Error:", e)
-        raise  # Relevanta o erro para diagnóstico
+    # Load categories dynamically from categories.json
+    with open('categories.json', 'r') as f:
+        categories_data = json.load(f)
+    
+    # Generate list of category field names dynamically
+    category_fields = [
+        category['name'].lower() 
+        for category in categories_data 
+        if not category.get('nsfw_only', False)
+    ]
+    
+    # Fields to ignore during parsing
+    ignore_fields = ['readme', 'custom-code', 'lorebook']
+    
+    # Initialize parsed data dictionary
+    parsed_data = {}
+    
+    # Split issue body into lines
+    lines = issue_body.split('\n')
+    
+    # Current field being processed
+    current_field = None
+    
+    for line in lines:
+        # Remove markdown formatting
+        line = line.strip()
         
-    return parsed_body
+        # Skip empty lines and markdown headers
+        if not line or line.startswith('##') or line.startswith('<'):
+            continue
+        
+        # Check for field identifiers
+        field_match = re.match(r'^### (.+)$', line)
+        if field_match:
+            current_field = slugify(field_match.group(1).lower(), separator='_')
+            
+            # Reset current_field if it's in ignore list
+            if current_field in ignore_fields or current_field in category_fields:
+                parsed_data[current_field] = []
+                continue
+            
+            # Reset current field if not a valid identifier
+            if current_field not in parsed_data:
+                parsed_data[current_field] = line.split(':', 1)[-1].strip()
+        
+        # For category fields, collect multiple values
+        elif current_field in category_fields and line and line != '_No response_':
+            # Remove list markers and extra whitespace
+            cleaned_line = line.lstrip('- ').strip()
+            if cleaned_line:
+                if not isinstance(parsed_data[current_field], list):
+                    parsed_data[current_field] = []
+                parsed_data[current_field].append(cleaned_line)
+        
+        # For readme, custom-code, and lorebook, store the raw content
+        elif current_field in ignore_fields:
+            # For these fields, store raw content
+            if current_field not in parsed_data:
+                parsed_data[current_field] = line
+            else:
+                parsed_data[current_field] += '\n' + line
+    
+    # Final processing
+    for field in ignore_fields:
+        # Remove code block markers if present
+        if field in parsed_data:
+            parsed_data[field] = re.sub(r'```.*?\n', '', parsed_data[field], flags=re.DOTALL).strip()
+    
+    return parsed_data
 
 def sanitize_filename(filename):
     """
@@ -136,7 +192,12 @@ def process_submission():
     Process the submission and create appropriate files
     """
     # Parse issue body
-    form_data = parse_issue_body(os.environ['ISSUE_BODY'])
+    try:
+        form_data = parse_issue_body(os.environ['ISSUE_BODY'])
+    except Exception as e:
+        print(f"Error parsing issue body: {e}")
+        print("Raw issue body:", os.environ['ISSUE_BODY'])
+        raise
     
     # Sanitize inputs
     content_type = form_data['content-type']
