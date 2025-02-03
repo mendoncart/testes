@@ -86,6 +86,13 @@ def parse_issue_body(issue_body):
             else:
                 parsed_data[current_field] += '\n' + line
 
+            # Modify the README parsing to handle HTML more robustly
+            if 'readme' in parsed_data:
+                # Remove code block markers and HTML tags while preserving content
+                parsed_data['readme'] = re.sub(r'```.*?```', '', parsed_data['readme'], flags=re.DOTALL)
+                parsed_data['readme'] = re.sub(r'<[^>]+>', '', parsed_data['readme'], flags=re.DOTALL)
+                parsed_data['readme'] = parsed_data['readme'].strip()
+
     # Debug: Print parsed data before cleanup
     print("\n--- PARSED DATA BEFORE CLEANUP ---\n")
     print(json.dumps(parsed_data, indent=2))
