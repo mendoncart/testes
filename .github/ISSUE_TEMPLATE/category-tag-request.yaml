@@ -33,8 +33,8 @@ body:
         - Role
         - Personality
         - Fetishes
-    validations:
-      required: true
+        validations:
+          required: true
   # END_CATEGORIES_OPTIONS
 
   - type: input
