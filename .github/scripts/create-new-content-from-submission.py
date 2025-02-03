@@ -14,8 +14,17 @@ def parse_issue_body(issue_body):
     Parse the GitHub issue body, which is in YAML-like format
     """
     # Remove any markdown sections
+    print("RAW ISSUE_BODY:\n", issue_body)
     lines = [line for line in issue_body.split('\n') if not line.startswith('##')]
-    parsed_body = yaml.safe_load('\n'.join(lines))
+    print("Filtered ISSUE_BODY content:\n", lines)
+
+    try:
+        # Tentar carregar o YAML
+        parsed_body = yaml.safe_load('\n'.join(lines))
+    except yaml.YAMLError as e:
+        print("YAML Parsing Error:", e)
+        raise  # Relevanta o erro para diagnóstico
+        
     return parsed_body
 
 def sanitize_filename(filename):
