@@ -105,11 +105,11 @@ body:
       value: |
         ## Content Categories
         
-        The following categories help users find your content. While optional, proper categorization is highly recommended.
-        Missing a category or tag? You can request new ones [here](../../issues/new?labels=category-request).
-        
-        Note: Some tags are only valid for NSFW content and will be filtered accordingly.
-
+        The following categories help users find your content. 
+        While **optional**, proper categorization is **highly recommended**.  
+          
+        > **Note:** Some tags are only valid for NSFW content and will be filtered accordingly.
+        _Missing a category or tag? You can request new ones [here](../../issues/new?labels=category-request)._
   
   # This section will be automatically updated based on categories.json
   # BEGIN_CATEGORIES
