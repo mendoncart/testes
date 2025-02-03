@@ -142,21 +142,22 @@ class TemplateUpdater:
         
         try:
             # Generate the full dropdown structure with updated categories
-            categories_dropdown = """  
-        - type: dropdown
+            # Note: YAML indentation is 2 spaces for each level
+            categories_dropdown = """  - type: dropdown
         id: existing-category
         attributes:
           label: Existing Category
           description: Select an existing category, or leave at 'None' to add a new one.
           options:
-            - None (New Category)
-    """
-            # Add each category as an option
+            - None (New Category)"""
+            
+            # Add each category as an option with proper indentation
             for category in self.categories:
-                categories_dropdown += f"        - {category['name']}\n"
+                categories_dropdown += f"\n        - {category['name']}"
                 
-            # Add the required validation
-            categories_dropdown += """    validations:
+            # Add the required validation with proper indentation
+            categories_dropdown += """
+        validations:
           required: true"""
             
             # Read the template file
