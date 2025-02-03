@@ -39,6 +39,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install PyYAML requests python-slugify
 
+
+      - name: Debug File Presence
+        run: ls -l categories.json
+
+      - name: Debug Directory Structure
+        run: ls -R .github/ISSUE_TEMPLATE/
+
+      - name: Debug Scripts Directory
+        run: ls -l .github/scripts/
+
+      - name: Debug File Permissions
+        run: ls -l .github/ISSUE_TEMPLATE/
+
+      - name: Debug Python Environment
+        run: python --version && which python
+        
+
       - name: Process Issue and Create PR
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
