@@ -110,8 +110,9 @@ body:
         
         Note: Some tags are only valid for NSFW content and will be filtered accordingly.
 
-  # BEGIN_CATEGORIES
+  
   # This section will be automatically updated based on categories.json
+  # BEGIN_CATEGORIES
   - type: dropdown
     id: species
     attributes:
