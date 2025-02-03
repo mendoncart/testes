@@ -56,14 +56,14 @@ class ContributionProcessor:
 
     def create_contribution_branch(self):
         """
-        Create a new branch for the contribution from the develop branch.
+        Create a new branch for the contribution from the main branch.
         
         :return: Name of the created branch
         """
-        base_branch = self.repo.get_branch('develop')
+        base_branch = self.repo.get_branch('main')
         branch_name = f'contribution/{self.body.get("content_name", "unnamed")}'
         
-        # Create branch from develop
+        # Create branch from main
         ref = f'refs/heads/{branch_name}'
         self.repo.create_git_ref(ref, base_branch.commit.sha)
         
@@ -142,7 +142,7 @@ class ContributionProcessor:
 
     def create_pull_request(self, branch_name):
         """
-        Create a pull request from the contribution branch to develop.
+        Create a pull request from the contribution branch to main.
         
         :param branch_name: Source branch for PR
         :return: Pull request object
@@ -151,7 +151,7 @@ class ContributionProcessor:
             title=f"Contribution: {self.body.get('content_name', 'Unnamed')}",
             body=f"Closes #{self.issue.number}\n\nContribution by @{self.issue.user.login}",
             head=branch_name,
-            base='develop'
+            base='main'
         )
         return pr
 
