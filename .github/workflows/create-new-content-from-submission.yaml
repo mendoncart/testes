@@ -1,0 +1,62 @@
+# create-new-content-from-submission.yaml
+# Runs mannually or whenever an submission issue is opened or edited
+name: Issue to PR Converter
+
+on:
+  issues:
+    types: [opened, edited]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue Number to Process'
+        required: true
+
+jobs:
+  create-pr:
+    # Run if it's an issue event without the 'PR Generated' label, or if manually triggered
+    if: |
+      (github.event_name == 'issues' && 
+       contains(github.event.issue.labels.*.name, 'contribution') && 
+       !contains(github.event.issue.labels.*.name, 'PR Generated')) ||
+      github.event_name == 'workflow_dispatch'
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT_GITHUB_ACTIONS }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyYAML requests python-slugify
+
+      - name: Process Issue and Create PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          ISSUE_BODY: ${{ github.event.issue.body || '' }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
+          ISSUE_TITLE: ${{ github.event.issue.title || '' }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login || github.actor }}
+        run: python .github/scripts/process_submission.py
+
+      - name: Add PR Generated Label
+        if: github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['PR Generated']
+            })
