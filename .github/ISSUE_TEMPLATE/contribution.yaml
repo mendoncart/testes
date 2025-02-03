@@ -114,28 +114,40 @@ body:
   # This section will be automatically updated based on categories.json
   # BEGIN_CATEGORIES
   - type: dropdown
+    id: rating
+    attributes:
+      label: Rating
+      description: Content maturity level
+      multiple: true
+      options:
+        - NSFW
+        - SFW
+    validations:
+      required: true
+
+  - type: dropdown
     id: species
     attributes:
       label: Species
       description: Character's species or race
       multiple: true
       options:
-        - Human
-        - Elf
-        - Orc
-        - Dragon
+        - AI
+        - Alien
+        - Android
         - Angel
         - Demon
+        - Dragon
+        - Elf
+        - Ghost
+        - Human
+        - Incubus
+        - Orc
+        - Succubus
         - Vampire
         - Werewolf
-        - Android
-        - AI
-        - Ghost
-        - Alien
-        - Succubus
-        - Incubus
     validations:
-      required: false
+      required: true
 
   - type: dropdown
     id: gender
@@ -144,13 +156,122 @@ body:
       description: Character's gender identity
       multiple: true
       options:
-        - Male
-        - Female
-        - Non-binary
-        - Genderfluid
         - Agender
+        - Female
         - Futanari
         - Gender Transformation
+        - Genderfluid
+        - Male
+        - Non-binary
+    validations:
+      required: true
+
+  - type: dropdown
+    id: genre
+    attributes:
+      label: Genre
+      description: Story type or style
+      multiple: true
+      options:
+        - Action
+        - Adventure
+        - Comedy
+        - Drama
+        - Erotic
+        - Fantasy
+        - Fetish
+        - Historical
+        - Horror
+        - Mystery
+        - RPG
+        - Romance
+        - Sci-Fi
+        - Sexual Roleplay
+        - Slice of Life
+        - Thriller
+    validations:
+      required: true
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: Source
+      description: Source of inspiration
+      multiple: true
+      options:
+        - Adult Film
+        - Anime
+        - Book
+        - Doujinshi
+        - Fanfiction
+        - Game
+        - Hentai
+        - Manga
+        - Movie
+        - Original
+        - TV Show
+    validations:
+      required: true
+
+  - type: dropdown
+    id: role
+    attributes:
+      label: Role
+      description: Character's primary role or occupation
+      multiple: true
+      options:
+        - Artist
+        - Healer
+        - Hero
+        - Mage
+        - Merchant
+        - Professional
+        - Royalty
+        - Servant
+        - Student
+        - Teacher
+        - Villain
+        - Warrior
+    validations:
+      required: false
+
+  - type: dropdown
+    id: personality
+    attributes:
+      label: Personality
+      description: Character's primary personality traits
+      multiple: true
+      options:
+        - Aggressive
+        - Caring
+        - Cheerful
+        - Confident
+        - Dominant
+        - Friendly
+        - Mysterious
+        - Playful
+        - Reserved
+        - Serious
+        - Shy
+        - Submissive
+        - Teasing
+    validations:
+      required: false
+
+  - type: dropdown
+    id: fetishes
+    attributes:
+      label: Fetishes
+      description: Adult-themed interests
+      multiple: true
+      options:
+        - BDSM
+        - Bondage
+        - Feet
+        - Pet Play
+        - Roleplay
+        - Size Difference
+        - Voyeurism
     validations:
       required: false
   # END_CATEGORIES
