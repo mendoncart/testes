@@ -15,8 +15,9 @@ body:
         - label: I have checked if my request could fit within existing categories
           required: true
 
-  # BEGIN_CATEGORIES_OPTIONS
+  
   # This section will be automatically updated based on categories.json
+  # BEGIN_CATEGORIES_OPTIONS
   - type: dropdown
     id: existing-category
     attributes:
