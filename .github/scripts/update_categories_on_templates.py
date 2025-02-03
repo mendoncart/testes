@@ -94,9 +94,12 @@ class TemplateUpdater:
             yaml += f"        - {category['name']}\n"
         return yaml
     
-    def update_contribution_template(self):
+    def update_contribution_template(self, skipRating: bool = True):
         """
         Update the contribution template with current categories
+        
+        Args:
+            skipRating (bool): If True, skip the Rating category when generating template
         """
         template_path = f"{self.template_dir}/contribution.yaml"
         print(f"Updating contribution template: {template_path}")
@@ -105,6 +108,9 @@ class TemplateUpdater:
             # Generate categories section
             categories_yaml = ""
             for category in self.categories:
+                # Skip Rating category if skipRating is True
+                if skipRating and category['name'] == 'Rating':
+                    continue
                 categories_yaml += self.generate_category_yaml(category) + "\n"
                 
             # Read existing template
@@ -132,6 +138,7 @@ class TemplateUpdater:
         except Exception as e:
             print(f"ERROR: Failed to update contribution template: {e}")
             sys.exit(1)
+
             
     def update_category_request_template(self):
         """
