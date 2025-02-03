@@ -157,8 +157,8 @@ class TemplateUpdater:
                 
             # Add the required validation with proper indentation
             categories_dropdown += """
-        validations:
-          required: true"""
+    validations:
+      required: true"""
             
             # Read the template file
             if os.path.exists(template_path):
