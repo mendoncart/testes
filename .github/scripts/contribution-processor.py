@@ -4,8 +4,12 @@ import re
 import json
 import yaml
 import base64
-from github import Github
+import gzip
+import io
+import zipfile
 import requests
+from urllib.parse import urlparse, parse_qs
+from github import Github
 import datetime
 
 class ContributionProcessor:
