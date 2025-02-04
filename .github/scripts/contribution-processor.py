@@ -81,7 +81,7 @@ class ContributionProcessor:
         
         :param branch_name: Branch to commit files to
         """
-        content_name = self.sanitize_filename(f"{self.body.get('content_name', 'unnamed')}_{self.body.get('author', 'unknown')}")
+        content_name = self.sanitize_filename(f"{self.body.get('content_name', 'unnamed')} by {self.body.get('author', 'unknown')}")
         content_path = f"lore-books/{self.body.get('rating', 'sfw').lower()}/{content_name}"
         
         # Create files
@@ -145,7 +145,7 @@ class ContributionProcessor:
         # Set up paths
         base_path = "ai-character-chat/characters"
         rating = self.body.get('content_rating_(required)', 'fix').lower()
-        char_path = f"{base_path}/{rating}/{content_name} - {author_name}"
+        char_path = f"{base_path}/{rating}/{content_name} by {author_name}"
         
         # Auto-categorize content
         # Load categories configuration
@@ -180,7 +180,7 @@ class ContributionProcessor:
         manifest = {
             'name': content_name,
             'description': self.body.get('short_description', ''),
-            'author': author_name if author_name else self.issue.user.login, # If blank fallback to username on github
+            'author': author_name,
             'authorId': self.issue.user.id,
             'imageUrl': self.body.get('image_url_for_your_content', ''),
             'shareUrl': share_url,
