@@ -171,7 +171,33 @@ class ContributionProcessor:
         char_path = f"{base_path}/{rating}/{content_name} - {author_name}"
         
         # Auto-categorize content
-        #categories = self.auto_categorize_content(character_files.get('src/roleInstruction.txt', ''))
+        # Load categories configuration
+        with open('categories.json', 'r') as f:
+            categories_config = json.load(f)
+        
+        # Create categories dictionary dynamically
+        categories = {
+            'rating': rating  # Fixed category
+        }
+        
+        # Populate other categories dynamically from categories.json
+        for category in categories_config:
+            category_name = category['name'].lower()
+            if category_name != 'rating':  # Skip rating as it's handled separately
+                # Get the value from body if it exists, otherwise use empty list
+                category_value = self.body.get(category_name.lower(), '')
+                if category_value:
+                    # If multiple values are selected (comma-separated), split them
+                    if isinstance(category_value, str) and ',' in category_value:
+                        categories[category_name] = [v.strip() for v in category_value.split(',')]
+                    else:
+                        categories[category_name] = [category_value]
+                elif category['required']:
+                    # For required categories with no value, use first general tag as default
+                    #categories[category_name] = [category['tags']['general'][0]]
+                    categories[category_name] = 'blank'
+                else:
+                    categories[category_name] = []
         
         # Create manifest
         manifest = {
@@ -194,16 +220,7 @@ class ContributionProcessor:
                 'assets': []
             },
             # TODO: Populate categories automatically by comparing the fields with the file categories.json
-            'categories': {
-                'rating': self.body.get('content_rating_(required)', 'sfw'), # Fixed category
-                # TODO: Populate categories below using categories.json. Ignore if a category exists in categories.json, but is missing on the issue.
-                'species': [self.body.get('species', '')], # TODO: If more than one tag is selected for a category, treat it accordingly
-                'gender': [self.body.get('gender', '')],
-                'genre': [self.body.get('genre', '')],
-                'source': [self.body.get('source', '')],
-                'role': [self.body.get('role', '')],
-                'personality': [self.body.get('personality', '')]
-            }
+            'categories': categories
         }
     
         # Create changelog.json
@@ -300,34 +317,44 @@ class ContributionProcessor:
         """
         files = {}
         
-        # Define which fields should be saved as separate files
-        text_fields = [
-            'roleInstruction', 'reminderMessage', 'customCode',
-            'imagePromptPrefix', 'imagePromptSuffix', 'imagePromptTriggers',
-            'initialMessages', 'loreBookUrls','avatar','userCharacter',
-            'systemCharacter'
-        ]
+        # Define fields and their corresponding file formats
+        field_formats = {
+            'name': 'txt',
+            'roleInstruction': 'txt',
+            'reminderMessage': 'txt',
+            'customCode': 'js',
+            'imagePromptPrefix': 'txt',
+            'imagePromptSuffix': 'txt',
+            'imagePromptTriggers': 'json',
+            'initialMessages': 'json',
+            'loreBookUrls': 'json',
+            'avatar': 'json',
+            'scene': 'json',
+            'userCharacter': 'json',
+            'systemCharacter': 'json'
+        }
         
-        # Create individual text files
-        for field in text_fields:
+        # Create individual files based on format
+        for field, format_type in field_formats.items():
             if field in character_info and character_info[field]:
                 content = character_info[field]
-                if isinstance(content, (dict, list)):
+                if format_type == 'json' or isinstance(content, (dict, list)):
                     content = json.dumps(content, indent=2)
-                files[f"src/{field}.txt"] = content
-        
-        # Create character.zip containing the original data
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            # TODO: Create a proper character format json
-            placeholder_data = {
+                files[f"src/{field}.{format_type}"] = content
+
+    
+        # Create character.gz containing the original data
+        gz_buffer = io.BytesIO()
+        with gzip.GzipFile(fileobj=gz_buffer, mode='wb') as gz_file:
+            # Prepare data for gzip
+            character_data = {
                 "version": "1.0.0",
                 "exportDate": datetime.datetime.utcnow().isoformat(),
                 "characterData": character_info
             }
-            zip_file.writestr('character.json', json.dumps(placeholder_data, indent=2))
+            gz_file.write(json.dumps(character_data, indent=2).encode('utf-8'))
         
-        files['character.zip'] = zip_buffer.getvalue()
+        files['character.gz'] = gz_buffer.getvalue()
         
         return files
     
