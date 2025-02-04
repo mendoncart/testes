@@ -338,12 +338,14 @@ class ContributionProcessor:
         """
         index_path = "ai-character-chat/characters/index.json"
         
-        try:
+        ttry:
             # Try to get existing index file
             try:
-                index_content = self.repo.get_contents(index_path).decoded_content
+                file_content = self.repo.get_contents(index_path)
+                index_content = file_content.decoded_content.decode('utf-8')
                 index_data = json.loads(index_content)
-            except:
+            except Exception as e:
+                print(f"DEBUG: No existing index.json found or error reading it: {str(e)}")
                 # If file doesn't exist, start with empty list
                 index_data = []
             
@@ -470,7 +472,21 @@ class ContributionProcessor:
         files['character.gz'] = gz_buffer.getvalue()
         
         return files
-    
+
+    def _get_file_sha(self, file_path):
+        """
+        Get the SHA of an existing file in the repository.
+        
+        :param file_path: Path to the file in the repository
+        :return: SHA string or None if file doesn't exist
+        """
+        try:
+            file_content = self.repo.get_contents(file_path)
+            return file_content.sha
+        except Exception as e:
+            print(f"DEBUG: File {file_path} not found or error getting SHA: {str(e)}")
+            return None
+            
     def _commit_files(self, branch_name, files):
         """
         Commit multiple files to a specific branch.
@@ -491,15 +507,30 @@ class ContributionProcessor:
                 # Convert content to base64 if it's not already
                 if isinstance(content, str):
                     content = content.encode('utf-8')
+
+                # Get the file's SHA if it exists
+                file_sha = self._get_file_sha(path)
                 
-                # Create or update file
-                self.repo.create_file(
-                    path=path,
-                    message=message,
-                    content=content,
-                    branch=branch_name
-                )
-                print(f"DEBUG: Successfully created file {path}")
+               # Create or update file with optional SHA
+                if file_sha:
+                    print(f"DEBUG: Updating existing file {path}")
+                    self.repo.update_file(
+                        path=path,
+                        message=message,
+                        content=content,
+                        branch=branch_name,
+                        sha=file_sha
+                    )
+                else:
+                    print(f"DEBUG: Creating new file {path}")
+                    self.repo.create_file(
+                        path=path,
+                        message=message,
+                        content=content,
+                        branch=branch_name
+                    )
+                    
+                print(f"DEBUG: Successfully created/updated file {path}")
                 
             except Exception as e:
                 print(f"ERROR: Failed to commit file {file_info['path']}: {str(e)}")
