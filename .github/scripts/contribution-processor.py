@@ -132,7 +132,7 @@ class ContributionProcessor:
         
         # Get basic information
         content_name = self.sanitize_filename(self.body.get('content_name', 'unnamed'))
-        author_name = self.sanitize_filename(self.body.get('author_name', 'anonymous'))
+        author_name = self.sanitize_filename((self.body.get('author_name') or self.issue.user.login or 'anonymous').strip())
         share_url = self.body.get('perchance_character_share_link', '')
         
         # Validate share URL
@@ -180,7 +180,7 @@ class ContributionProcessor:
         manifest = {
             'name': content_name,
             'description': self.body.get('short_description', ''),
-            'author': author_name,
+            'author': author_name if author_name else self.issue.user.login, # If blank fallback to username on github
             'authorId': self.issue.user.id,
             'imageUrl': self.body.get('image_url_for_your_content', ''),
             'shareUrl': share_url,
@@ -196,7 +196,6 @@ class ContributionProcessor:
                 'customCode': [char_path + "/src/customCode.txt"] if character_files.get('src/customCode.txt') else [],
                 'assets': []
             },
-            # TODO: Populate categories automatically by comparing the fields with the file categories.json
             'categories': categories
         }
     
@@ -444,7 +443,7 @@ class ContributionProcessor:
         """
         base_branch = self.repo.get_branch('main')
         
-        author_name = self.body.get('author_name', '').strip()
+        author_name = self.body.get('author_name', self.issue.user.login).strip()
         fallback_name = str(self.issue.number)
         
         branch_safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', author_name or fallback_name)
@@ -560,7 +559,7 @@ class ContributionProcessor:
         content_type = self.body.get('content_type', '').strip() or ''
         
         pr = self.repo.create_pull(
-            title=f"[{content_type} Contribution]: {self.body.get('content_name', 'Unnamed')} by {self.body.get('author', 'Anonymous')}",
+            title=f"[{content_type} Contribution]: {self.body.get('content_name', 'Unnamed')} by {self.body.get('author_name') or self.issue.user.login or 'Anonymous'}",
             body=f"Closes #{self.issue.number}\n\nContribution by @{self.issue.user.login}",
             head=branch_name,
             base='main'
@@ -598,7 +597,7 @@ class ContributionProcessor:
                 print("DEBUG: No files committed, creating placeholder")
                 placeholder_content = f"""Contribution from issue #{self.issue.number}
     Content Type: {content_type}
-    Author: {self.body.get('author_name', 'Unknown')}
+    Author: {self.body.get('author_name') or self.issue.user.login or 'Unknown'}
     """
                 self._commit_files(branch_name, [{
                     'path': 'contributions/placeholder.md',
