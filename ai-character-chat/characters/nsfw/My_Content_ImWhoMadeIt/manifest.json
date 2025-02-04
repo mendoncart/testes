@@ -1,0 +1,41 @@
+{
+  "name": "My Content",
+  "description": "A brief description",
+  "author": "ImWhoMadeIt",
+  "authorId": 123456,
+  "imageUrl": "https://user-uploads.perchance.org/file/f97d49e4231d6b90d83a37f12ca95c52.jpeg",
+  "shareUrl": "https://perchance.org/ai-character-chat-slime",
+  "downloadUrl": "google.com.br",
+  "shapeShifter_Pulls": 0,
+  "galleryChat_Clicks": 0,
+  "galleryDownload_Clicks": 0,
+  "groupSettings": {
+    "requires": [],
+    "recommends": []
+  },
+  "features": {
+    "customCode": [],
+    "assets": []
+  },
+  "categories": {
+    "rating": "NSFW",
+    "species": [
+      ""
+    ],
+    "gender": [
+      ""
+    ],
+    "genre": [
+      ""
+    ],
+    "source": [
+      ""
+    ],
+    "role": [
+      ""
+    ],
+    "personality": [
+      ""
+    ]
+  }
+}
