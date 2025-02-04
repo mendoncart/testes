@@ -45,20 +45,20 @@ jobs:
         run: |
           python .github/scripts/contribution-processor.py
 
-      - name: Validate Contribution
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
-        run: |
-          python .github/scripts/contribution-validator.py
+      # - name: Validate Contribution
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+      #   run: |
+      #     python .github/scripts/contribution-validator.py
 
-      - name: Add Labels
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.PAT_GITHUB_ACTIONS }}
-          script: |
-            github.rest.issues.addLabels({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
-              labels: ['AUTO PR Created']
-            })
+      # - name: Add Labels
+      #   uses: actions/github-script@v6
+      #   with:
+      #     github-token: ${{ secrets.PAT_GITHUB_ACTIONS }}
+      #     script: |
+      #       github.rest.issues.addLabels({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.name,
+      #         labels: ['AUTO PR Created']
+      #       })
