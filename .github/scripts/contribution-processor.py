@@ -77,6 +77,7 @@ class ContributionProcessor:
     def create_contribution_branch(self):
         """
         Create a new branch for the contribution from the main branch.
+        If branch exists, just return its name.
         
         :return: Name of the created branch
         """
@@ -86,17 +87,28 @@ class ContributionProcessor:
         author_name = self.body.get('author_name', '').strip()
         fallback_name = str(self.issue.number)
         
-        # Sanitize the branch name to remove invalid characters
+        # Sanitize the branch name
         branch_safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', author_name or fallback_name)
         branch_name = f'contribution/{branch_safe_name}'
         
-        print(f"DEBUG: Creating branch {branch_name}")
+        print(f"DEBUG: Creating/checking branch {branch_name}")
         
-        # Create branch from main
-        ref = f'refs/heads/{branch_name}'
-        self.repo.create_git_ref(ref, base_branch.commit.sha)
+        try:
+            # Try to get the branch first
+            self.repo.get_branch(branch_name)
+            print(f"DEBUG: Branch {branch_name} already exists")
+        except:
+            # Branch doesn't exist, create it
+            ref = f'refs/heads/{branch_name}'
+            try:
+                self.repo.create_git_ref(ref, base_branch.commit.sha)
+                print(f"DEBUG: Created new branch {branch_name}")
+            except Exception as e:
+                print(f"ERROR: Failed to create branch: {str(e)}")
+                raise
         
         return branch_name
+
 
     def process_lorebook(self, branch_name):
         """
@@ -325,7 +337,7 @@ class ContributionProcessor:
             'customCode': 'js',
             'imagePromptPrefix': 'txt',
             'imagePromptSuffix': 'txt',
-            'imagePromptTriggers': 'json',
+            'imagePromptTriggers': 'txt',
             'initialMessages': 'json',
             'loreBookUrls': 'json',
             'avatar': 'json',
@@ -346,13 +358,61 @@ class ContributionProcessor:
         # Create character.gz containing the original data
         gz_buffer = io.BytesIO()
         with gzip.GzipFile(fileobj=gz_buffer, mode='wb') as gz_file:
-            # Prepare data for gzip
-            character_data = {
-                "version": "1.0.0",
-                "exportDate": datetime.datetime.utcnow().isoformat(),
-                "characterData": character_info
+            # Format data according to the export template
+            export_data = {
+                "formatName": "dexie",
+                "formatVersion": 1,
+                "data": {
+                    "databaseName": "chatbot-ui-v1",
+                    "databaseVersion": 90,
+                    "tables": [
+                        {
+                            "name": "characters",
+                            "schema": "++id,modelName,fitMessagesInContextMethod,uuid,creationTime,lastMessageTime",
+                            "rowCount": 1
+                        },
+                        # Add other table schemas with rowCount 0
+                        {"name": "threads", "schema": "++id,name,characterId,creationTime,lastMessageTime,lastViewTime", "rowCount": 0},
+                        {"name": "messages", "schema": "++id,threadId,characterId,creationTime,order", "rowCount": 0},
+                        {"name": "misc", "schema": "key", "rowCount": 0},
+                        {"name": "summaries", "schema": "hash,threadId", "rowCount": 0},
+                        {"name": "memories", "schema": "++id,[summaryHash+threadId],[characterId+status],[threadId+status],[threadId+index],threadId", "rowCount": 0},
+                        {"name": "lore", "schema": "++id,bookId,bookUrl", "rowCount": 0},
+                        {"name": "textEmbeddingCache", "schema": "++id,textHash,&[textHash+modelName]", "rowCount": 0},
+                        {"name": "textCompressionCache", "schema": "++id,uncompressedTextHash,&[uncompressedTextHash+modelName+tokenLimit]", "rowCount": 0},
+                        {"name": "usageStats", "schema": "[dateHour+threadId+modelName],threadId,characterId,dateHour", "rowCount": 0}
+                    ],
+                    "data": [
+                        {
+                            "tableName": "characters",
+                            "inbound": True,
+                            "rows": [{
+                                **character_info,
+                                "id": 1,
+                                "creationTime": int(datetime.datetime.now().timestamp() * 1000),
+                                "lastMessageTime": int(datetime.datetime.now().timestamp() * 1000),
+                                "$types": {
+                                    "maxParagraphCountPerMessage": "undef",
+                                    "initialMessages": "arrayNonindexKeys",
+                                    "shortcutButtons": "arrayNonindexKeys",
+                                    "loreBookUrls": "arrayNonindexKeys"
+                                }
+                            }]
+                        },
+                        # Add other empty tables
+                        {"tableName": "threads", "inbound": True, "rows": []},
+                        {"tableName": "messages", "inbound": True, "rows": []},
+                        {"tableName": "misc", "inbound": True, "rows": []},
+                        {"tableName": "summaries", "inbound": True, "rows": []},
+                        {"tableName": "memories", "inbound": True, "rows": []},
+                        {"tableName": "lore", "inbound": True, "rows": []},
+                        {"tableName": "textEmbeddingCache", "inbound": True, "rows": []},
+                        {"tableName": "textCompressionCache", "inbound": True, "rows": []},
+                        {"tableName": "usageStats", "inbound": True, "rows": []}
+                    ]
+                }
             }
-            gz_file.write(json.dumps(character_data, indent=2).encode('utf-8'))
+            gz_file.write(json.dumps(export_data, indent=2).encode('utf-8'))
         
         files['character.gz'] = gz_buffer.getvalue()
         
@@ -395,6 +455,7 @@ class ContributionProcessor:
     def create_pull_request(self, branch_name):
         """
         Create a pull request from the contribution branch to main.
+        Also adds the 'PR Generated' label to the issue.
         
         :param branch_name: Source branch for PR
         :return: Pull request object
@@ -408,6 +469,13 @@ class ContributionProcessor:
             head=branch_name,
             base='main'
         )
+
+        # Add label to the issue
+        try:
+            self.issue.add_to_labels("PR Generated")
+        except Exception as e:
+            print(f"WARNING: Failed to add PR Generated label to issue: {str(e)}")
+            
         return pr
 
     def process(self):
