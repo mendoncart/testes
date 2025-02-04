@@ -274,7 +274,7 @@ class ContributionProcessor:
         :return: Pull request object
         """
 
-        content_type = self.body.get('content_type', '').strip() || ''
+        content_type = self.body.get('content_type', '').strip() or ''
         
         pr = self.repo.create_pull(
             title=f"[{content_type} Contribution]: {self.body.get('content_name', 'Unnamed')} by {self.body.get('author', 'Anonymous')}",
