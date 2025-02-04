@@ -27,21 +27,36 @@ class ContributionProcessor:
         :param body: Raw issue body text
         :return: Dictionary of parsed fields
         """
-        # TODO: Implement robust parsing to extract fields correctly
         fields = {}
+        
+        # Split by ### but keep the section headers
         sections = body.split('###')
         
         for section in sections[1:]:  # Skip first empty section
-            lines = section.strip().split('\n')
+            # Split into lines and remove empty ones
+            lines = [line.strip() for line in section.split('\n') if line.strip()]
+            
+            if not lines:  # Skip empty sections
+                continue
+                
+            # Get the section name from first line and convert to field name
             key = lines[0].strip().lower().replace(' ', '_')
             
-            # Special handling for multi-line fields
+            # For certain fields, join all remaining lines
             if key in ['readme_content', 'custom_code', 'lorebook_content']:
                 value = '\n'.join(lines[1:]).strip()
             else:
-                value = lines[1].strip() if len(lines) > 1 else ''
+                # For other fields, take just the first non-empty line after the header
+                value = lines[1] if len(lines) > 1 else ''
+                
+                # Clean up common formatting issues
+                value = value.replace('_No response_', '')  # Remove "_No response_" placeholders
+                value = value.strip()  # Remove any extra whitespace
             
             fields[key] = value
+            
+            # Debug print to help track what's being parsed
+            print(f"DEBUG: Parsed field {key} = {value[:50]}...")
         
         return fields
 
@@ -168,17 +183,43 @@ class ContributionProcessor:
         """
         Main processing method to handle different contribution types.
         """
-        branch_name = self.create_contribution_branch()
+        # Debug print dos campos parseados
+        print(f"DEBUG: Parsed fields: {self.body}")
         
-        content_type = self.body.get('content_type', '').lower()
-        print(f"DEBUG: Branch Name {branch_name}")
-        print(f"DEBUG: content_type {content_type}")
+        content_type = self.body.get('content_type', '').lower().strip()
+        if not content_type:
+            # Se content_type estiver vazio, vamos procurar no corpo original da issue
+            print("DEBUG: Content type is empty, searching in original issue body")
+            if "### Content Type" in self.issue.body:
+                content_type = self.issue.body.split("### Content Type")[1].split("###")[0].strip().lower()
+                self.body['content_type'] = content_type
+        
+        print(f"DEBUG: Content type identified as: {content_type}")
+        
+        branch_name = self.create_contribution_branch()
+        files_committed = False
+        
         if content_type == 'lorebook':
             self.process_lorebook(branch_name)
+            files_committed = True
         elif content_type == 'custom code':
             self.process_custom_code(branch_name)
+            files_committed = True
         elif content_type == 'character':
             self.process_character(branch_name)
+            files_committed = True
+        
+        # Se nenhum arquivo foi commitado, adiciona um placeholder
+        if not files_committed:
+            placeholder_content = f"""Contribution from issue #{self.issue.number}
+    Content Type: {content_type}
+    Author: {self.body.get('author', 'Unknown')}
+    """
+            self._commit_files(branch_name, [{
+                'path': f'contributions/placeholder.md',
+                'content': placeholder_content,
+                'message': f'Add placeholder for {content_type} contribution'
+            }])
         
         pr = self.create_pull_request(branch_name)
         return pr
