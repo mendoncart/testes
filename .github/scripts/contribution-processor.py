@@ -67,7 +67,7 @@ class ContributionProcessor:
         :param name: Original filename
         :return: Sanitized filename
         """
-        return re.sub(r'[<>:"/\\|?*]', '_', name)
+        return re.sub(r'[<>:"/\\|?* ]', '_', name)
 
     def create_contribution_branch(self):
         """
