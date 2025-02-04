@@ -171,6 +171,8 @@ class ContributionProcessor:
         branch_name = self.create_contribution_branch()
         
         content_type = self.body.get('content_type', '').lower()
+        print(f"DEBUG: Branch Name {branch_name}")
+        print(f"DEBUG: content_type {content_type}")
         if content_type == 'lorebook':
             self.process_lorebook(branch_name)
         elif content_type == 'custom code':
