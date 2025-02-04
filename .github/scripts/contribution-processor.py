@@ -166,7 +166,7 @@ class ContributionProcessor:
             'authorId': 123456, # TODO Retrieve author ID
             'imageUrl': self.body.get('image_url_for_your_content', ''),
             'shareUrl': self.body.get('perchance_character_share_link', ''),
-            'downloadUrl': 'google.com.br' # TODO manipulate file to generate URL pointing to character.zip
+            'downloadUrl': 'google.com.br', # TODO manipulate file to generate URL pointing to character.zip
             'shapeShifter_Pulls': 0,
             'galleryChat_Clicks': 0,
             'galleryDownload_Clicks': 0,
