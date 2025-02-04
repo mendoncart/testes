@@ -1,0 +1,43 @@
+{
+  "name": "My Content",
+  "description": "A brief description",
+  "author": "ImWhoMadeIt",
+  "authorId": 62950083,
+  "imageUrl": "https://user-uploads.perchance.org/file/f97d49e4231d6b90d83a37f12ca95c52.jpeg",
+  "shareUrl": "https://perchance.org/ai-character-chat?data=Aqua~788fec3d11366c8d96ce2aaf7bfcb489.gz",
+  "downloadUrl": "ai-character-chat/characters/nsfw/My Content - ImWhoMadeIt/character.zip",
+  "shapeShifter_Pulls": 0,
+  "galleryChat_Clicks": 0,
+  "galleryDownload_Clicks": 0,
+  "groupSettings": {
+    "requires": [],
+    "recommends": []
+  },
+  "features": {
+    "customCode": [
+      "ai-character-chat/characters/nsfw/My Content - ImWhoMadeIt/src/customCode.txt"
+    ],
+    "assets": []
+  },
+  "categories": {
+    "rating": "NSFW",
+    "species": [
+      ""
+    ],
+    "gender": [
+      ""
+    ],
+    "genre": [
+      ""
+    ],
+    "source": [
+      ""
+    ],
+    "role": [
+      ""
+    ],
+    "personality": [
+      ""
+    ]
+  }
+}
