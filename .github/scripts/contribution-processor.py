@@ -6,6 +6,7 @@ import yaml
 import base64
 from github import Github
 import requests
+import datetime
 
 class ContributionProcessor:
     def __init__(self, github_token, issue_number):
