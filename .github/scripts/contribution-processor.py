@@ -155,7 +155,7 @@ class ContributionProcessor:
         content_name = self.sanitize_filename(f"{self.body.get('content_name', 'unnamed')}").strip()
         author_name = self.sanitize_filename(f"{self.body.get('author_name', 'anonymous')}").strip()
         fixed_path = "./ai-character-chat/characters/"
-        variable_path = f"{self.body.get('rating', 'sfw').lower()}/{content_name}_{author_name}"
+        variable_path = f"{self.body.get('content_rating_(required)', 'Fix').lower()}/{content_name}_{author_name}"
         content_path = fixed_path + variable_path
         
         # Create character manifest
