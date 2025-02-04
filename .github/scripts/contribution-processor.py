@@ -74,41 +74,6 @@ class ContributionProcessor:
         """
         return re.sub(r'[<>:"/\\|?*]', '_', name)
 
-    def create_contribution_branch(self):
-        """
-        Create a new branch for the contribution from the main branch.
-        If branch exists, just return its name.
-        
-        :return: Name of the created branch
-        """
-        base_branch = self.repo.get_branch('main')
-        
-        # Use content name if available, otherwise use issue number
-        author_name = self.body.get('author_name', '').strip()
-        fallback_name = str(self.issue.number)
-        
-        # Sanitize the branch name
-        branch_safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', author_name or fallback_name)
-        branch_name = f'contribution/{branch_safe_name}'
-        
-        print(f"DEBUG: Creating/checking branch {branch_name}")
-        
-        try:
-            # Try to get the branch first
-            self.repo.get_branch(branch_name)
-            print(f"DEBUG: Branch {branch_name} already exists")
-        except:
-            # Branch doesn't exist, create it
-            ref = f'refs/heads/{branch_name}'
-            try:
-                self.repo.create_git_ref(ref, base_branch.commit.sha)
-                print(f"DEBUG: Created new branch {branch_name}")
-            except Exception as e:
-                print(f"ERROR: Failed to create branch: {str(e)}")
-                raise
-        
-        return branch_name
-
 
     def process_lorebook(self, branch_name):
         """
@@ -473,19 +438,52 @@ class ContributionProcessor:
         
         return files
 
-    def _get_file_sha(self, file_path):
+    def create_contribution_branch(self):
         """
-        Get the SHA of an existing file in the repository.
+        Create a new branch for the contribution from the main branch.
+        """
+        base_branch = self.repo.get_branch('main')
+        
+        author_name = self.body.get('author_name', '').strip()
+        fallback_name = str(self.issue.number)
+        
+        branch_safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', author_name or fallback_name)
+        branch_name = f'contribution/{branch_safe_name}'
+        
+        print(f"DEBUG: Creating branch {branch_name}")
+        
+        try:
+            # Check if branch exists
+            existing_branch = self.repo.get_branch(branch_name)
+            print(f"DEBUG: Branch {branch_name} already exists, will reuse")
+        except:
+            # Create branch from main
+            ref = f'refs/heads/{branch_name}'
+            self.repo.create_git_ref(ref, base_branch.commit.sha)
+            print(f"DEBUG: Created new branch {branch_name}")
+        
+        return branch_name
+
+    def _get_file_sha(self, file_path, branch_name):
+        """
+        Get the SHA of an existing file in the specified branch.
         
         :param file_path: Path to the file in the repository
+        :param branch_name: Name of the branch to check
         :return: SHA string or None if file doesn't exist
         """
         try:
-            file_content = self.repo.get_contents(file_path)
+            # Get the file content from the specific branch
+            file_content = self.repo.get_contents(file_path, ref=branch_name)
             return file_content.sha
         except Exception as e:
-            print(f"DEBUG: File {file_path} not found or error getting SHA: {str(e)}")
-            return None
+            try:
+                # If file doesn't exist in the branch, try main branch
+                file_content = self.repo.get_contents(file_path, ref='main')
+                return file_content.sha
+            except Exception as e:
+                print(f"DEBUG: File {file_path} not found in either branch: {str(e)}")
+                return None
             
     def _commit_files(self, branch_name, files):
         """
@@ -502,35 +500,49 @@ class ContributionProcessor:
                 content = file_info['content']
                 message = file_info['message']
                 
-                print(f"DEBUG: Creating file {path}")
+                print(f"DEBUG: Creating/updating file {path}")
                 
                 # Convert content to base64 if it's not already
                 if isinstance(content, str):
                     content = content.encode('utf-8')
-
-                # Get the file's SHA if it exists
-                file_sha = self._get_file_sha(path)
                 
-               # Create or update file with optional SHA
-                if file_sha:
-                    print(f"DEBUG: Updating existing file {path}")
-                    self.repo.update_file(
-                        path=path,
-                        message=message,
-                        content=content,
-                        branch=branch_name,
-                        sha=file_sha
-                    )
-                else:
-                    print(f"DEBUG: Creating new file {path}")
-                    self.repo.create_file(
-                        path=path,
-                        message=message,
-                        content=content,
-                        branch=branch_name
-                    )
-                    
-                print(f"DEBUG: Successfully created/updated file {path}")
+                # Get the file's SHA from the correct branch
+                file_sha = self._get_file_sha(path, branch_name)
+                
+                try:
+                    if file_sha:
+                        print(f"DEBUG: Updating existing file {path} with SHA {file_sha}")
+                        self.repo.update_file(
+                            path=path,
+                            message=message,
+                            content=content,
+                            sha=file_sha,
+                            branch=branch_name
+                        )
+                    else:
+                        print(f"DEBUG: Creating new file {path}")
+                        self.repo.create_file(
+                            path=path,
+                            message=message,
+                            content=content,
+                            branch=branch_name
+                        )
+                    print(f"DEBUG: Successfully created/updated file {path}")
+                except Exception as commit_error:
+                    print(f"WARNING: First commit attempt failed: {str(commit_error)}")
+                    # If update fails, try to get SHA again and retry
+                    file_sha = self._get_file_sha(path, 'main')
+                    if file_sha:
+                        print(f"DEBUG: Retrying update with main branch SHA {file_sha}")
+                        self.repo.update_file(
+                            path=path,
+                            message=message,
+                            content=content,
+                            sha=file_sha,
+                            branch=branch_name
+                        )
+                    else:
+                        raise
                 
             except Exception as e:
                 print(f"ERROR: Failed to commit file {file_info['path']}: {str(e)}")
