@@ -190,7 +190,7 @@ class ContributionProcessor:
                 'recommends': []
             },
             'features': {
-                'customCode': bool(character_files.get('src/customCode.txt')),
+                'customCode': [char_path + "/src/customCode.txt"] if character_files.get('src/customCode.txt') else [],
                 'assets': []
             },
             # TODO: Populate categories automatically by comparing the fields with the file categories.json
@@ -302,8 +302,10 @@ class ContributionProcessor:
         
         # Define which fields should be saved as separate files
         text_fields = [
-            'name', 'roleInstruction', 'reminderMessage', 'customCode',
-            'imagePromptPrefix', 'imagePromptSuffix', 'imagePromptTriggers'
+            'roleInstruction', 'reminderMessage', 'customCode',
+            'imagePromptPrefix', 'imagePromptSuffix', 'imagePromptTriggers',
+            'initialMessages', 'loreBookUrls','avatar','userCharacter',
+            'systemCharacter'
         ]
         
         # Create individual text files
