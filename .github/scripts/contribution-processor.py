@@ -338,7 +338,7 @@ class ContributionProcessor:
         """
         index_path = "ai-character-chat/characters/index.json"
         
-        ttry:
+        try:
             # Try to get existing index file
             try:
                 file_content = self.repo.get_contents(index_path)
