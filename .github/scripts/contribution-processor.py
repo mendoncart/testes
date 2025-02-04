@@ -78,11 +78,11 @@ class ContributionProcessor:
         base_branch = self.repo.get_branch('main')
         
         # Use content name if available, otherwise use issue number
-        content_name = self.body.get('content_name', '').strip()
+        author_name = self.body.get('author_name', '').strip()
         fallback_name = str(self.issue.number)
         
         # Sanitize the branch name to remove invalid characters
-        branch_safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', content_name or fallback_name)
+        branch_safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', author_name or fallback_name)
         branch_name = f'contribution/{branch_safe_name}'
         
         print(f"DEBUG: Creating branch {branch_name}")
@@ -163,16 +163,48 @@ class ContributionProcessor:
             'name': self.body.get('content_name', ''),
             'description': self.body.get('short_description', ''),
             'author': self.body.get('author_name', ''),
-            'type': 'character',
-            'rating': self.body.get('content_rating_(required)', 'sfw'),
-            'perchance_url': self.body.get('perchance_character_share_link', ''),
-            'image_url': self.body.get('image_url_for_your_content', ''),
-            'species': self.body.get('species', ''),
-            'gender': self.body.get('gender', ''),
-            'genre': self.body.get('genre', ''),
-            'source': self.body.get('source', ''),
-            'role': self.body.get('role', ''),
-            'personality': self.body.get('personality', '')
+            'authorId': 123456, # TODO Retrieve author ID
+            'imageUrl': self.body.get('image_url_for_your_content', ''),
+            'shareUrl': self.body.get('perchance_character_share_link', ''),
+            'downloadUrl': 'google.com.br' # TODO manipulate file to generate URL pointing to character.zip
+            'shapeShifter_Pulls': 0,
+            'galleryChat_Clicks': 0,
+            'galleryDownload_Clicks': 0,
+            'groupSettings': {
+                'requires': [],
+                'recommends': []
+            },
+            'features': {
+                'customCode':[],
+                'assets':[]
+            },
+            # TODO: Populate categories automatically by comparing the fields with the file categories.json
+            'categories': {
+                'rating': self.body.get('content_rating_(required)', 'sfw'), # Fixed category
+                # TODO: Populate categories below using categories.json. Ignore if a category exists in categories.json, but is missing on the issue.
+                'species': [self.body.get('species', '')], # TODO: If more than one tag is selected for a category, treat it accordingly
+                'gender': [self.body.get('gender', '')],
+                'genre': [self.body.get('genre', '')],
+                'source': [self.body.get('source', '')],
+                'role': [self.body.get('role', '')],
+                'personality': [self.body.get('personality', '')]
+            }
+        }
+
+        # Create changelog.json
+        now = datetime.datetime.utcnow().isoformat() + 'Z'    # Date and time in ISO 8601 (UTC)
+        changelog = {
+            'currentVersion': '1.2.0',
+            'created': now,
+            'lastUpdated': now,
+            'history': [      
+                {
+                    'version': '1.0.0',
+                    'date': now,
+                    'type': 'initial',
+                    'changes': ['Initial release']
+                }
+            ]
         }
         
         # Prepare files to commit
@@ -181,6 +213,11 @@ class ContributionProcessor:
                 'path': f"{content_path}/manifest.json",
                 'content': json.dumps(manifest, indent=2),
                 'message': 'Add character manifest'
+            },
+            {
+                'path': f"{content_path}/changelog.json",
+                'content': json.dumps(changelog, indent=2),
+                'message': 'Add character changelog'
             },
             {
                 'path': f"{content_path}/README.md",
