@@ -273,8 +273,11 @@ class ContributionProcessor:
         :param branch_name: Source branch for PR
         :return: Pull request object
         """
+
+        content_type = self.body.get('content_type', '').strip() || ''
+        
         pr = self.repo.create_pull(
-            title=f"Contribution: {self.body.get('content_name', 'Unnamed')}",
+            title=f"[{content_type} Contribution]: {self.body.get('content_name', 'Unnamed')} by {self.body.get('author', 'Anonymous')}",
             body=f"Closes #{self.issue.number}\n\nContribution by @{self.issue.user.login}",
             head=branch_name,
             base='main'
