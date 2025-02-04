@@ -138,16 +138,58 @@ class ContributionProcessor:
         # TODO: Implement custom code specific processing
         # Add malicious code detection placeholder
         pass
-
+        
     def process_character(self, branch_name):
         """
         Process character contribution.
         
         :param branch_name: Branch to commit files to
         """
+        
         # TODO: Implement character-specific processing
         # This includes downloading .gz file, creating src content, etc.
-        pass
+        
+        print("DEBUG: Processing character contribution")
+        
+        # Get sanitized content name for folder structure
+        content_name = self.sanitize_filename(f"{self.body.get('content_name', 'unnamed')}")
+        content_path = f"characters/{self.body.get('rating', 'sfw').lower()}/{content_name}"
+        
+        # Create character manifest
+        manifest = {
+            'name': self.body.get('content_name', ''),
+            'description': self.body.get('short_description', ''),
+            'author': self.body.get('author_name', ''),
+            'type': 'character',
+            'rating': self.body.get('content_rating_(required)', 'sfw'),
+            'perchance_url': self.body.get('perchance_character_share_link', ''),
+            'image_url': self.body.get('image_url_for_your_content', ''),
+            'species': self.body.get('species', ''),
+            'gender': self.body.get('gender', ''),
+            'genre': self.body.get('genre', ''),
+            'source': self.body.get('source', ''),
+            'role': self.body.get('role', ''),
+            'personality': self.body.get('personality', '')
+        }
+        
+        # Prepare files to commit
+        files_to_commit = [
+            {
+                'path': f"{content_path}/manifest.json",
+                'content': json.dumps(manifest, indent=2),
+                'message': 'Add character manifest'
+            },
+            {
+                'path': f"{content_path}/README.md",
+                'content': self.body.get('readme_content', ''),
+                'message': 'Add character README'
+            }
+        ]
+        
+        print(f"DEBUG: Committing {len(files_to_commit)} files for character")
+        self._commit_files(branch_name, files_to_commit)
+        
+        return True
 
     def _commit_files(self, branch_name, files):
         """
@@ -156,13 +198,32 @@ class ContributionProcessor:
         :param branch_name: Target branch
         :param files: List of file dictionaries with path, content, and message
         """
+        print(f"DEBUG: Attempting to commit {len(files)} files to branch {branch_name}")
+        
         for file_info in files:
-            self.repo.create_file(
-                path=file_info['path'],
-                message=file_info['message'],
-                content=file_info['content'],
-                branch=branch_name
-            )
+            try:
+                path = file_info['path']
+                content = file_info['content']
+                message = file_info['message']
+                
+                print(f"DEBUG: Creating file {path}")
+                
+                # Convert content to base64 if it's not already
+                if isinstance(content, str):
+                    content = content.encode('utf-8')
+                
+                # Create or update file
+                self.repo.create_file(
+                    path=path,
+                    message=message,
+                    content=content,
+                    branch=branch_name
+                )
+                print(f"DEBUG: Successfully created file {path}")
+                
+            except Exception as e:
+                print(f"ERROR: Failed to commit file {file_info['path']}: {str(e)}")
+                raise
 
     def create_pull_request(self, branch_name):
         """
@@ -183,46 +244,41 @@ class ContributionProcessor:
         """
         Main processing method to handle different contribution types.
         """
-        # Debug print dos campos parseados
-        print(f"DEBUG: Parsed fields: {self.body}")
+        print(f"DEBUG: Starting process with body: {self.body}")
         
         content_type = self.body.get('content_type', '').lower().strip()
-        if not content_type:
-            # Se content_type estiver vazio, vamos procurar no corpo original da issue
-            print("DEBUG: Content type is empty, searching in original issue body")
-            if "### Content Type" in self.issue.body:
-                content_type = self.issue.body.split("### Content Type")[1].split("###")[0].strip().lower()
-                self.body['content_type'] = content_type
-        
         print(f"DEBUG: Content type identified as: {content_type}")
         
         branch_name = self.create_contribution_branch()
         files_committed = False
         
-        if content_type == 'lorebook':
-            self.process_lorebook(branch_name)
-            files_committed = True
-        elif content_type == 'custom code':
-            self.process_custom_code(branch_name)
-            files_committed = True
-        elif content_type == 'character':
-            self.process_character(branch_name)
-            files_committed = True
-        
-        # Se nenhum arquivo foi commitado, adiciona um placeholder
-        if not files_committed:
-            placeholder_content = f"""Contribution from issue #{self.issue.number}
+        try:
+            if content_type == 'lorebook':
+                files_committed = self.process_lorebook(branch_name)
+            elif content_type == 'custom code':
+                files_committed = self.process_custom_code(branch_name)
+            elif content_type == 'character':
+                files_committed = self.process_character(branch_name)
+            
+            if not files_committed:
+                print("DEBUG: No files committed, creating placeholder")
+                placeholder_content = f"""Contribution from issue #{self.issue.number}
     Content Type: {content_type}
-    Author: {self.body.get('author', 'Unknown')}
+    Author: {self.body.get('author_name', 'Unknown')}
     """
-            self._commit_files(branch_name, [{
-                'path': f'contributions/placeholder.md',
-                'content': placeholder_content,
-                'message': f'Add placeholder for {content_type} contribution'
-            }])
+                self._commit_files(branch_name, [{
+                    'path': 'contributions/placeholder.md',
+                    'content': placeholder_content,
+                    'message': f'Add placeholder for {content_type} contribution'
+                }])
+            
+            print("DEBUG: Creating pull request")
+            pr = self.create_pull_request(branch_name)
+            return pr
         
-        pr = self.create_pull_request(branch_name)
-        return pr
+        except Exception as e:
+            print(f"ERROR in process: {str(e)}")
+            raise
 
 def main():
     github_token = os.environ.get('GITHUB_TOKEN')
