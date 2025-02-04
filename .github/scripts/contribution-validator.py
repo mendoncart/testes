@@ -85,7 +85,7 @@ class ContributionValidator:
         manifest_path = os.path.join(self.contribution_path, 'manifest.json')
         
         if not os.path.exists(manifest_path):
-            print("Manifest file not found")
+            print("Manifest file not found on:" + manifest_path)
             return False
         
         manifest_valid = self.validate_manifest_schema(manifest_path)
