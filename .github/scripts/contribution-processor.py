@@ -68,7 +68,7 @@ class ContributionProcessor:
         :param name: Original filename
         :return: Sanitized filename
         """
-        return re.sub(r'[<>:"/\\|?* ]', '_', name)
+        return re.sub(r'[<>:"/\\|?*]', '_', name)
 
     def create_contribution_branch(self):
         """
@@ -156,7 +156,7 @@ class ContributionProcessor:
         content_name = self.sanitize_filename(f"{self.body.get('content_name', 'unnamed')}").strip()
         author_name = self.sanitize_filename(f"{self.body.get('author_name', 'anonymous')}").strip()
         fixed_path = "./ai-character-chat/characters/"
-        variable_path = f"{self.body.get('content_rating_(required)', 'Fix').lower()}/{content_name}_{author_name}"
+        variable_path = f"{self.body.get('content_rating_(required)', 'Fix').lower()}/{content_name} - {author_name}"
         content_path = fixed_path + variable_path
         
         # Create character manifest
@@ -167,7 +167,7 @@ class ContributionProcessor:
             'authorId': 123456, # TODO Retrieve author ID
             'imageUrl': self.body.get('image_url_for_your_content', ''),
             'shareUrl': self.body.get('perchance_character_share_link', ''),
-            'downloadUrl': 'google.com.br', # TODO manipulate file to generate URL pointing to character.zip
+            'downloadUrl': content_path + '/character.zip', # TODO manipulate .gz file to generate URL pointing to character.zip
             'shapeShifter_Pulls': 0,
             'galleryChat_Clicks': 0,
             'galleryDownload_Clicks': 0,
@@ -195,7 +195,7 @@ class ContributionProcessor:
         # Create changelog.json
         now = datetime.datetime.utcnow().isoformat() + 'Z'    # Date and time in ISO 8601 (UTC)
         changelog = {
-            'currentVersion': '1.2.0',
+            'currentVersion': '1.0.0',
             'created': now,
             'lastUpdated': now,
             'history': [      
