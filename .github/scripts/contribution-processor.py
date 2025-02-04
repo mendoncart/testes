@@ -277,7 +277,15 @@ class ContributionProcessor:
                 'content': content,
                 'message': f'Add character file: {file_path}'
             })
-        
+
+         # Update index.json
+            updated_index = self.update_character_index(char_path, manifest)
+            files_to_commit.append({
+                'path': "ai-character-chat/characters/index.json",
+                'content': updated_index,
+                'message': f'Update index.json with {content_name}'
+            })
+            
         # Commit all files
         print(f"DEBUG: Committing {len(files_to_commit)} files for character")
         self._commit_files(branch_name, files_to_commit)
@@ -319,7 +327,52 @@ class ContributionProcessor:
         except Exception as e:
             print(f"ERROR: Failed to process character file: {str(e)}")
             raise
-    
+            
+    def update_character_index(self, character_path, manifest_data):
+        """
+        Update the character index file with new character information.
+        
+        :param character_path: Relative path to character directory
+        :param manifest_data: Character manifest data
+        :return: Updated index content
+        """
+        index_path = "ai-character-chat/characters/index.json"
+        
+        try:
+            # Try to get existing index file
+            try:
+                index_content = self.repo.get_contents(index_path).decoded_content
+                index_data = json.loads(index_content)
+            except:
+                # If file doesn't exist, start with empty list
+                index_data = []
+            
+            # Remove path prefix to match index format
+            relative_path = character_path.replace("ai-character-chat/characters/", "")
+            
+            # Create new character entry
+            new_entry = {
+                "path": relative_path,
+                "manifest": manifest_data
+            }
+            
+            # Check if character already exists (by path)
+            existing_index = next((i for i, item in enumerate(index_data) 
+                                 if item["path"] == relative_path), None)
+            
+            if existing_index is not None:
+                # Update existing entry
+                index_data[existing_index] = new_entry
+            else:
+                # Add new entry
+                index_data.append(new_entry)
+            
+            return json.dumps(index_data, indent=2)
+            
+        except Exception as e:
+            print(f"ERROR: Failed to update character index: {str(e)}")
+            raise
+            
     def create_character_files(self, character_info):
         """
         Create individual files for each character attribute and zip file.
