@@ -216,7 +216,7 @@ class ContributionProcessor:
             ]
         }
         
-            # Prepare files to commit
+        # Prepare files to commit
         files_to_commit = [
             {
                 'path': f"{char_path}/manifest.json",
@@ -234,6 +234,14 @@ class ContributionProcessor:
                 'message': 'Add character README'
             }
         ]
+
+        # Update index.json
+        updated_index = self.update_character_index(char_path, manifest)
+        files_to_commit.append({
+            'path': "ai-character-chat/characters/index.json",
+            'content': updated_index,
+            'message': f'Update index.json with {content_name}'
+        })
         
         # Add character files
         for file_path, content in character_files.items():
@@ -241,14 +249,6 @@ class ContributionProcessor:
                 'path': f"{char_path}/{file_path}",
                 'content': content,
                 'message': f'Add character file: {file_path}'
-            })
-
-         # Update index.json
-            updated_index = self.update_character_index(char_path, manifest)
-            files_to_commit.append({
-                'path': "ai-character-chat/characters/index.json",
-                'content': updated_index,
-                'message': f'Update index.json with {content_name}'
             })
             
         # Commit all files
