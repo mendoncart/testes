@@ -184,7 +184,7 @@ class ContributionProcessor:
             'authorId': self.issue.user.id,
             'imageUrl': self.body.get('image_url_for_your_content', ''),
             'shareUrl': share_url,
-            'downloadUrl': f"{char_path}/character.zip",
+            'downloadPath': f"{char_path}/character.gz",
             'shapeShifter_Pulls': 0,
             'galleryChat_Clicks': 0,
             'galleryDownload_Clicks': 0,
