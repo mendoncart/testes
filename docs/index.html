@@ -103,6 +103,19 @@
             </div>
         </nav>
 
+        <!-- <pre>
+            selectedRegister: {{ selectedRegister }}
+            selectedRegisterCodigo: {{ selectedRegisterCodigo }}
+            modificacoes: {{ modificacoes }}
+            filtros: {{ filtros }}
+
+            fileContent : {{ fileContent ? 'Carregado' : 'Não Carregado' }}
+            filtros.length: {{ filtros.length }}
+            modificacoes.length: {{ modificacoes.length }}
+            etapas: {{ etapas.length }}
+            etapas: {{ etapas }}
+        </pre> -->
+
         <div class="container-fluid">
             <div class="row h-100">
                 <!-- Importação e log -->
@@ -115,19 +128,19 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-12" v-if="!fileContent">
+                                <div :class="{'col-md-12': !fileContent, 'col-md-6': fileContent}">
                                     <div class="d-grid">
                                         <button class="btn btn-outline-primary input-file-custom">
                                             <i class="bi bi-upload me-2"></i>
                                             Importar Arquivo TXT
-                                            <input type="file" @change="handleFileUpload" accept=".txt">
+                                            <input type="file" @change="handleFileUpload($event)" accept=".txt">
                                         </button>
                                     </div>
                                     <small class="text-muted mt-1" v-if="fileName">
                                         Arquivo selecionado: {{ fileName }}
                                     </small>
                                 </div>
-                                <div class="col-md-12" v-if="fileContent">
+                                <div class="col-md-6" v-if="fileContent">
                                     <div class="d-grid">
                                         <button class="btn btn-outline-success" @click="downloadFile"
                                             :disabled="!fileContent">
@@ -136,6 +149,88 @@
                                         </button>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card de Etapas/Navegação -->
+                    <div class="card mb-2" style="flex-grow: 0;">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-list-ol me-2"></i>
+                                Etapas ({{ etapas.length }})
+                                <!-- Tooltip para explicar funcionalidade -->
+                                <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="top"
+                                    title="Crie e navegue entre diferentes etapas de processamento. Cada etapa pode ter suas próprias configurações de filtros e modificações."></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Informação sobre a etapa atual -->
+                            <div class="d-flex align-items-center mb-2">
+                                <!-- Botões de ação -->
+                                <div class="btn-group w-100" role="group">
+                                    <!-- Botões de criar e deletar -->
+                                    <button class="btn btn-sm btn-success me-1" @click="novaEtapa" title="Nova Etapa"
+                                        v-if="etapas.length > 0">
+                                        <i class="bi bi-plus-circle me-1"></i> <span
+                                            class="d-none d-xl-inline">Nova</span>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger me-1" @click="deletarEtapa"
+                                        :disabled="etapas.length === 0" title="Deletar Etapa" v-if="etapas.length > 0">
+                                        <i class="bi bi-trash me-1"></i> <span class="d-none d-sm-inline">Deletar</span>
+                                    </button>
+
+                                    <!-- Botões de importação e exportação -->
+                                    <label class="btn btn-sm btn-primary me-1 mb-0" title="Importar Etapas">
+                                        <i class="bi bi-upload"></i> <span class="d-none d-sm-inline">Importar</span>
+                                        <input type="file" @change="handleFileUpload($event, 'etapas')" accept=".json"
+                                            hidden>
+                                    </label>
+                                    <button class="btn btn-sm btn-secondary me-1" @click="exportarEtapas"
+                                        :disabled="etapas.length === 0" title="Exportar Etapas"
+                                        v-if="etapas.length > 0">
+                                        <i class="bi bi-download"></i> <span class="d-none d-sm-inline">Exportar</span>
+                                    </button>
+                                </div>
+
+                            </div>
+
+                            <!-- Navegação entre etapas -->
+                            <div class="d-flex align-items-center justify-content-center mb-2"
+                                v-if="etapas.length > 0 || (etapas.length > 0 && etapas.length <= etapaAtual)">
+                                <!-- Botões de navegação -->
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-secondary" @click="irPrimeira"
+                                        :disabled="etapas.length === 0 || etapaAtual === 0" title="Primeira">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" @click="etapaAnterior"
+                                        :disabled="etapas.length === 0 || etapaAtual === 0" title="Anterior">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <span class="badge badge-register text-dark">
+                                        {{ etapaAtual + 1 }}
+                                    </span>
+                                    <button class="btn btn-sm btn-outline-secondary" @click="proximaEtapa"
+                                        :disabled="etapas.length === 0 || etapaAtual === etapas.length - 1"
+                                        title="Próxima">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" @click="irUltima"
+                                        :disabled="etapas.length === 0 || etapaAtual === etapas.length - 1"
+                                        title="Última">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+
+                            <div class="me-1">
+                                <!-- Botões de processamento -->
+                                <button class="btn btn-sm btn-primary w-100" @click="processarTodasEtapas"
+                                    :disabled="etapas.length === 0" v-if="etapas.length > 1">
+                                    <i class="bi bi-lightning-charge-fill me-1"></i> Processar Todas
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -193,13 +288,29 @@
                             <div>
                                 <i class="bi bi-gear-fill me-2"></i>
                                 Configuração de Edição
+                                <!-- Indicador da etapa atual -->
+                                <span class="badge bg-info ms-2" v-if="etapas.length > 0 && etapaAtual < etapas.length">
+                                    Etapa {{ etapaAtual + 1 }}/{{ etapas.length }}
+                                </span>
+                                <span class="badge bg-warning ms-2" v-else>
+                                    Nova Etapa
+                                </span>
                             </div>
-
-                            <button class="btn btn-secondary btn-sm" @click="resetarConfiguracao"
-                                :disabled="!selectedRegister">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i>
-                                Resetar Configuração
-                            </button>
+                            <div class="btn-group" role="group">
+                                <label class="btn btn-primary btn-sm mb-0">
+                                    <i class="bi bi-upload me-1"></i> Importar
+                                    <input type="file" @change="handleFileUpload($event, 'config')" accept=".json"
+                                        hidden>
+                                </label>
+                                <button class="btn btn-secondary btn-sm" @click="exportarConfiguracao"
+                                    v-show="selectedRegister && filtros.length && modificacoes.length">
+                                    <i class="bi bi-download me-1"></i> Exportar
+                                </button>
+                                <button class="btn btn-danger btn-sm" @click="resetarConfiguracao"
+                                    v-show="selectedRegister && filtros.length && modificacoes.length">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Resetar
+                                </button>
+                            </div>
                         </div>
 
                         <div class="card-body">
@@ -402,6 +513,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Initialize all tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
         // Registrar o componente v-select
         Vue.component('v-select', VueSelect.VueSelect);
 
@@ -545,8 +662,16 @@
             data: {
                 fileContent: '',
                 fileName: '',
+                skipWatch: false,
                 selectedRegister: null,
                 selectedRegisterCodigo: null,
+                filtros: [],
+                modificacoes: [],
+                etapas: [],
+                etapaAtual: 0,
+                mostrarConteudoCompleto: false,
+                logOperacoes: '<span class="text-muted">Aguardando operações...</span>',
+                processadoUltimo: null,
                 registros: [
                     { codigo: 'C100', descricao: 'C100 - Nota Fiscal' },
                     { codigo: 'C170', descricao: 'C170 - Item da Nota Fiscal' },
@@ -625,11 +750,6 @@
                         37: 'Cód. conta analítica'
                     },
                 },
-                filtros: [],
-                modificacoes: [],
-                mostrarConteudoCompleto: false,
-                logOperacoes: '<span class="text-muted">Aguardando operações...</span>',
-                processadoUltimo: null
             },
             computed: {
                 camposDisponiveis() {
@@ -672,337 +792,8 @@
                     alert('Seu navegador não suporta a API de arquivos. Por favor, use um navegador moderno.');
                 }
 
-                // Initialize all tooltips
-                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                    return new bootstrap.Tooltip(tooltipTriggerEl)
-                });
-
             },
             methods: {
-                /**
-                 * Carrega o conteúdo de um arquivo de texto a partir do caminho especificado
-                 * @param {string} filePath - Caminho completo do arquivo a ser carregado
-                 * @returns {Promise} - Promise que resolve com o conteúdo do arquivo ou rejeita com erro
-                 */
-                async loadFile(filePath) {
-                    // Esta função carrega o conteúdo de um arquivo específico quando recebe o local do arquivo
-                    try {
-                        // Verifica se estamos usando a File System Access API (ambiente moderno)
-                        if (window.FileSystemFileHandle) {
-                            // Obter o manipulador para o arquivo especificado
-                            const fileHandle = await filePath.getFile();
-                            // Ler o conteúdo do arquivo como texto
-                            const fileData = await fileHandle.text();
-                            // Atualizar o conteúdo do arquivo na aplicação
-                            this.fileContent = fileData;
-                            console.log('Arquivo carregado com sucesso usando File System Access API');
-                        }
-                        // Caso contrário, usamos fetch para carregar o arquivo (abordagem mais tradicional)
-                        else {
-                            const response = await fetch(filePath);
-                            // Verificar se a resposta foi bem-sucedida
-                            if (!response.ok) {
-                                throw new Error('Erro ao carregar o arquivo: ' + response.statusText);
-                            }
-                            // Ler o conteúdo do arquivo como texto
-                            const data = await response.text();
-                            // Atualizar o conteúdo do arquivo na aplicação
-                            this.fileContent = data;
-                            console.log('Arquivo carregado com sucesso usando fetch');
-                        }
-                    } catch (error) {
-                        // Tratamento de erros ao carregar o arquivo
-                        console.error('Erro ao carregar o arquivo:', error);
-                        alert('Não foi possível carregar o arquivo: ' + error.message);
-                    }
-                },
-
-                /**
-                 * Verifica se existe um arquivo com 'sped' no nome na pasta selecionada
-                 * e carrega automaticamente se encontrar
-                 * @returns {Promise} - Promise que resolve quando o processo termina
-                */
-                async checkForSpedFile() {
-                    // Esta função verifica se existe um arquivo contendo 'sped' no nome na mesma pasta
-                    // e chama a função de carregamento se encontrar
-                    try {
-                        // Solicitar ao usuário que selecione a pasta para buscar o arquivo
-                        const dirHandle = await window.showDirectoryPicker();
-                        let spedFiles = [];
-
-                        // Percorrer todos os arquivos na pasta selecionada
-                        for await (const entry of dirHandle.values()) {
-                            // Verificar se é um arquivo e se contém 'sped' no nome e termina com '.txt'
-                            if (entry.kind === 'file' &&
-                                entry.name.toLowerCase().includes('sped') &&
-                                entry.name.toLowerCase().endsWith('.txt')) {
-                                // Adicionar o arquivo encontrado à lista
-                                spedFiles.push(entry);
-                            }
-                        }
-
-                        // Verificar se encontrou algum arquivo SPED
-                        if (spedFiles.length === 0) {
-                            // Nenhum arquivo SPED encontrado
-                            console.error('Nenhum arquivo SPED.txt encontrado');
-                            alert('Nenhum arquivo SPED.txt encontrado na pasta selecionada');
-                            return;
-                        }
-
-                        // Verificar se encontrou mais de um arquivo SPED
-                        if (spedFiles.length > 1) {
-                            // Múltiplos arquivos SPED encontrados
-                            console.error('Múltiplos arquivos SPED.txt encontrados. Por favor, mantenha apenas um arquivo.');
-                            alert('Foram encontrados vários arquivos SPED. Selecione apenas um para continuar.');
-
-                            // Opcionalmente, podemos permitir ao usuário escolher qual arquivo deseja usar
-                            // Aqui estamos simplesmente pegando o primeiro por simplicidade
-                        }
-
-                        // Carregar o primeiro arquivo SPED encontrado
-                        await this.loadFile(spedFiles[0]);
-
-                    } catch (error) {
-                        // Tratamento de erros ao procurar arquivos SPED
-                        console.error('Erro ao procurar arquivos SPED:', error);
-                        alert('Erro ao procurar arquivos SPED: ' + error.message);
-                    }
-                },
-
-
-                /**
-                 * Manipula o evento quando um arquivo é selecionado pelo input file
-                 * @param {Event} event - O evento do input file
-                 */
-                handleFileUpload(event) {
-                    // Esta função intercepta o evento quando o usuário seleciona um arquivo usando o seletor de arquivos
-                    // e chama a função de carregamento
-
-                    // Obter o arquivo selecionado pelo usuário
-                    const file = event.target.files[0];
-
-                    // Verificar se um arquivo foi selecionado e se é do tipo texto
-                    if (file && file.type === 'text/plain') {
-                        // Criar um novo leitor de arquivo
-                        const reader = new FileReader();
-
-                        // Definir o que acontece quando o arquivo é carregado
-                        reader.onload = () => {
-                            // Atualizar o conteúdo do arquivo na aplicação
-                            this.fileContent = reader.result;
-                            console.log('Arquivo carregado com sucesso:', file.name);
-                        };
-
-                        // Ler o conteúdo do arquivo como texto
-                        reader.readAsText(file);
-                    } else {
-                        // Alertar o usuário se nenhum arquivo foi selecionado ou se não é um arquivo de texto
-                        alert('Por favor, selecione um arquivo .txt');
-                    }
-                },
-
-
-                // Baixa o conteúdo de fileContent como um arquivo .txt
-                downloadFile() {
-                    // Esta função baixa o conteúdo do textarea como um arquivo .txt
-                    const blob = new Blob([this.fileContent], { type: 'text/plain' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'arquivo_modificado.txt';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                },
-
-
-
-
-
-                // processarArquivoSPED() {
-                //     const filtrosTeste = [
-                //         { campo: 11, valor: ["1410", "1411", "2201", "2202"] }, // Campo 11 deve ser "1410" ou "1411"
-                //         { campo: 25, valor: "06" },             // Campo 25 deve ser "06"
-                //         { campo: 31, valor: "06" }              // Campo 31 deve ser "06"
-                //     ];
-
-                //     const modificacoesTeste = [
-                //         { campo: 25, valor: "73" },  // Alterar campo 25 para "73"
-                //         { campo: 31, valor: "73" }   // Alterar campo 31 para "73"
-                //     ];
-
-                //     // Aplicar as modificações
-                //     const resultadoTeste = this.editarSPED(this.fileContent, "C170", filtrosTeste, modificacoesTeste);
-
-                //     // Atualiza o resultado
-                //     this.fileContent = resultadoTeste;
-                // },
-
-                // Função para ajudar a preparar os filtros e modificações
-                editarSPED(conteudoArquivo, registro, filtros, modificacoes) {
-                    // Converter filtros para o formato esperado pela função principal
-                    const filtrosProcessados = filtros.map(filtro => {
-                        return {
-                            indice: filtro.campo,
-                            valor: filtro.valor
-                        };
-                    });
-
-                    // Converter modificações para o formato esperado pela função principal
-                    const modificacoesProcessadas = modificacoes.map(mod => {
-                        return {
-                            indice: mod.campo,
-                            valor: mod.valor
-                        };
-                    });
-
-                    // Chamar a função principal
-                    return this.modificarRegistrosSPED(conteudoArquivo, registro, filtrosProcessados, modificacoesProcessadas);
-                },
-
-                // Função para processar e modificar registros SPED
-                modificarRegistrosSPED(conteudoArquivo, codigoRegistro, filtros, modificacoes) {
-                    // Dividir o arquivo em linhas
-                    const linhas = conteudoArquivo.split('\n');
-
-                    // Contador para rastrear quantas linhas foram modificadas
-                    let contadorModificacoes = 0;
-
-                    // Array para armazenar as linhas modificadas para log posterior
-                    const linhasModificadas = [];
-
-                    // Processar cada linha do arquivo
-                    const resultado = linhas.map(linha => {
-                        // Dividir a linha em campos usando o pipe como separador
-                        const campos = linha.split('|');
-
-                        // Verificar se essa linha é do registro que queremos modificar
-                        if (campos[1] === codigoRegistro) {
-                            // Verificar se a linha atende a todas as condições de filtro
-                            const atendeFiltros = filtros.every(filtro => {
-                                const valorCampo = campos[filtro.indice];
-
-                                // Tratar diferentes tipos de condições
-                                if (Array.isArray(filtro.valor)) {
-                                    // Se o filtro é um array, verificar se o valor do campo está contido nele
-                                    return filtro.valor.includes(valorCampo);
-                                } else {
-                                    // Caso contrário, comparar diretamente
-                                    return valorCampo === filtro.valor;
-                                }
-                            });
-
-                            // Se a linha atende a todos os filtros, aplicar as modificações
-                            if (atendeFiltros) {
-                                // Guarda a linha original para log
-                                const linhaOriginal = linha;
-
-                                // Aplicar cada modificação especificada
-                                modificacoes.forEach(mod => {
-                                    if (typeof mod.valor === 'string' || typeof mod.valor === 'number') {
-                                        // Valor fixo
-                                        campos[mod.indice] = String(mod.valor);
-                                    } else if (typeof mod.valor === 'object' && mod.valor.tipo === 'campo') {
-                                        // Copiar valor de outro campo
-                                        campos[mod.indice] = campos[mod.valor.origem];
-                                    } else if (typeof mod.valor === 'object' && mod.valor.tipo === 'operacao') {
-                                        // Realizar operação matemática
-                                        let resultado;
-                                        const valor1 = parseFloat(campos[mod.valor.campo1].replace(',', '.'));
-
-                                        if (mod.valor.campo2 !== undefined) {
-                                            // Operação entre dois campos
-                                            const valor2 = parseFloat(campos[mod.valor.campo2].replace(',', '.'));
-
-                                            switch (mod.valor.operacao) {
-                                                case 'multiplicacao':
-                                                    resultado = valor1 * valor2;
-                                                    break;
-                                                case 'divisao':
-                                                    resultado = valor1 / valor2;
-                                                    break;
-                                                case 'soma':
-                                                    resultado = valor1 + valor2;
-                                                    break;
-                                                case 'subtracao':
-                                                    resultado = valor1 - valor2;
-                                                    break;
-                                                default:
-                                                    resultado = valor1;
-                                            }
-                                        } else if (mod.valor.constante !== undefined) {
-                                            // Operação com um valor constante
-                                            const constante = parseFloat(mod.valor.constante);
-
-                                            switch (mod.valor.operacao) {
-                                                case 'multiplicacao':
-                                                    resultado = valor1 * constante;
-                                                    break;
-                                                case 'divisao':
-                                                    resultado = valor1 / constante;
-                                                    break;
-                                                case 'soma':
-                                                    resultado = valor1 + constante;
-                                                    break;
-                                                case 'subtracao':
-                                                    resultado = valor1 - constante;
-                                                    break;
-                                                default:
-                                                    resultado = valor1;
-                                            }
-                                        }
-
-                                        // Formatar o resultado conforme o formato original (com vírgula como separador decimal)
-                                        campos[mod.indice] = resultado.toFixed(2).replace('.', ',');
-                                    }
-                                });
-
-                                // Reconstruir a linha com as modificações aplicadas
-                                const linhaModificada = campos.join('|');
-
-                                // Adicionar ao array de linhas modificadas para log
-                                linhasModificadas.push({
-                                    original: linhaOriginal,
-                                    modificada: linhaModificada
-                                });
-
-                                contadorModificacoes++;
-                                return linhaModificada;
-                            }
-                        }
-
-                        // Retornar o conteúdo do arquivo modificado e informações para log
-                        return {
-                            conteudoModificado: resultado.join('\n'),
-                            totalModificacoes: contadorModificacoes,
-                            linhasModificadas: linhasModificadas
-                        };
-                    });
-
-                    // Registrar as modificações no console
-                    console.log(`Total de ${contadorModificacoes} registros ${codigoRegistro} modificados.`);
-
-                    // Mostrar detalhes das linhas modificadas
-                    // if (linhasModificadas.length > 0) {
-                    //     console.log("\nLinhas modificadas:");
-                    //     linhasModificadas.forEach((item, indice) => {
-                    //         console.log(`\nModificação ${indice + 1}:`);
-                    //         console.log("Original: " + item.original);
-                    //         console.log("Modificada: " + item.modificada);
-                    //     });
-                    // }
-
-                    // Bootstrap toast para mostrar que a linha foi ou não modificada
-                    let mensagem = `Total de modificações: ${contadorModificacoes}. Linhas modificadas: ${linhasModificadas.join(', ')}`;
-                    alert(mensagem);
-
-                    // Retornar o conteúdo do arquivo modificado
-                    return resultado.join('\n');
-
-
-                },
 
                 processarArquivoSPED() {
                     if (!this.fileContent || !this.selectedRegisterCodigo) {
@@ -1079,7 +870,7 @@
 
                     // Adicionar ao log
                     this.adicionarAoLog(`<strong class="text-success">Processamento concluído!</strong> Modificados ${resultado.totalModificacoes} registros do tipo ${this.selectedRegisterCodigo}.`);
-                    
+
                     let mensagem = `Modificados ${resultado.totalModificacoes} registros do tipo ${this.selectedRegisterCodigo}.`;
                     alert(mensagem);
 
@@ -1097,17 +888,132 @@
                             </details>`);
                         });
                     }
+
+                    // Adicionar a etapa atual ao histórico
+                    this.gerarEtapas();
                 },
 
-                // Method to reset all configuration
-                resetarConfiguracao() {
-                    if (confirm('Tem certeza que deseja resetar toda a configuração?')) {
-                        this.selectedRegister = null;
-                        this.filtros = [];
-                        this.modificacoes = [];
-                        this.adicionarAoLog('Configuração resetada com sucesso.');
-                    }
+                gerarEtapas() {
+                    // Criar um objeto com os dados atuais (similar ao que salvamos no JSON)
+                    const etapaAtual = {
+                        selectedRegister: this.selectedRegister,
+                        modificacoes: this.modificacoes,
+                        filtros: this.filtros,
+                        timestamp: new Date().toISOString()  // Timestamp para identificar quando a etapa foi criada
+                    };
+
+                    // Adicionar o objeto de etapa à variável etapas
+                    this.etapas.push(etapaAtual);
+                    this.etapaAtual = this.etapas.length - 1; // Atualiza o índice da etapa atual
+
+                    console.log('Etapa criada com sucesso:', etapaAtual);
                 },
+
+                //-- ----------------------------------------------------------------------- -->
+                //--                           GESTÃO DE ARQUIVOS                            -->
+                //-- ----------------------------------------------------------------------- -->
+                /**
+                 * Manipula o evento quando um arquivo é selecionado pelo input file
+                 * @param {Event} event - O evento do input file
+                 */
+                handleFileUpload(event, type = 'sped') {
+                    console.log('handleFileUpload', type);
+                    const file = event.target.files[0];
+
+                    if (!file) {
+                        alert('Nenhum arquivo selecionado.');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+
+                    reader.onload = () => {
+                        const conteudo = reader.result;
+
+                        if (type === 'sped') {
+                            // Tratamento de arquivo .txt
+                            if (file.type === 'text/plain') {
+                                this.fileContent = conteudo;
+                                console.log('Arquivo SPED carregado com sucesso:', file.name);
+                                this.adicionarAoLog(`<strong class="text-success">Arquivo SPED carregado com sucesso!</strong> Nome: ${file.name}.`);
+                            } else {
+                                alert('Por favor, selecione um arquivo .txt válido.');
+                            }
+                        } else if (type === 'config') {
+                            try {
+                                const dados = JSON.parse(conteudo);
+                                // Injetar nas variáveis, assumindo que as chaves existem no JSON
+                                this.updateConfiguracao(dados);
+
+                                console.log('Configuração importada com sucesso:', file.name);
+                                this.adicionarAoLog(`<strong class="text-success">Configuração importada com sucesso!</strong> Nome: ${file.name}.`);
+                            } catch (e) {
+                                alert('Erro ao ler o arquivo de configuração. Certifique-se de que é um JSON válido.');
+                                console.error('Erro de parsing:', e);
+                            }
+                        } else if (type === 'etapas') {
+                            try {
+                                const etapas = JSON.parse(conteudo);
+                                if (Array.isArray(etapas)) {
+                                    this.etapas = etapas;
+                                    this.etapaAtual = 0; // Reseta para a primeira etapa
+                                    this.updateConfiguracao(this.etapas[0]); // Atualiza a configuração com a primeira etapa
+                                    this.adicionarAoLog(`<strong class="text-success">Etapas importadas com sucesso!</strong> Nome: ${file.name}.`);
+                                } else {
+                                    alert('O arquivo de etapas deve ser um array JSON.');
+                                }
+                            } catch (e) {
+                                alert('Erro ao ler o arquivo de etapas. Certifique-se de que é um JSON válido.');
+                                console.error('Erro de parsing:', e);
+                            }
+                        } else {
+                            alert('Tipo de arquivo não suportado. Por favor, selecione um arquivo .txt ou .json.');
+                        }
+                    };
+
+                    reader.readAsText(file);
+                },
+
+                // Baixa o conteúdo de fileContent como um arquivo .txt
+                downloadFile() {
+                    // Esta função baixa o conteúdo do textarea como um arquivo .txt
+                    const blob = new Blob([this.fileContent], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'arquivo_modificado.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+
+                // Exporta a configuração atual como um arquivo JSON
+                exportarConfiguracao() {
+                    const dados = {
+                        selectedRegister: this.selectedRegister,
+                        modificacoes: this.modificacoes,
+                        filtros: this.filtros
+                    };
+
+                    const json = JSON.stringify(dados, null, 2); // Bonitinho, indentado
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'configuracao.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+
+
+                //-- ----------------------------------------------------------------------- -->
+                //--                         CONFIGURAÇÕES E FILTROS                         -->
+                //-- ----------------------------------------------------------------------- -->
+
+                //-- ------------------------------- FILTROS ------------------------------- -->
                 adicionarFiltro() {
                     this.filtros.push({
                         campoNome: null,
@@ -1131,6 +1037,17 @@
                         }
                     }
                 },
+                atualizarIndiceFiltro(index) {
+                    const filtro = this.filtros[index];
+                    if (filtro.campoNome) {
+                        const campoEncontrado = this.camposDisponiveis.find(c => c.label === filtro.campoNome.label);
+                        if (campoEncontrado) {
+                            filtro.campo = campoEncontrado.indice;
+                        }
+                    }
+                },
+
+                //-- ----------------------------- MODIFICAÇÕES ---------------------------- -->
                 adicionarModificacao() {
                     this.modificacoes.push({
                         campoNome: null,
@@ -1157,15 +1074,6 @@
                         }
                     }
                 },
-                atualizarIndiceFiltro(index) {
-                    const filtro = this.filtros[index];
-                    if (filtro.campoNome) {
-                        const campoEncontrado = this.camposDisponiveis.find(c => c.label === filtro.campoNome.label);
-                        if (campoEncontrado) {
-                            filtro.campo = campoEncontrado.indice;
-                        }
-                    }
-                },
                 atualizarIndiceModificacao(index) {
                     const mod = this.modificacoes[index];
                     if (mod.campoNome) {
@@ -1186,8 +1094,34 @@
                     }
                 },
 
+                //-- ---------------------------- CONFIGURAÇÂO ----------------------------- -->
 
+                // Method to update configuration from JSON file
+                updateConfiguracao(dados) {
+                    console.log('updateConfiguracao', JSON.stringify(dados, null, 2));
+                    this.skipWatch = true;
+                    this.selectedRegister = dados.selectedRegister || null;
+                    this.selectedRegisterCodigo = dados.selectedRegister.codigo || null;
 
+                    this.$nextTick(() => {
+                        this.filtros = dados.filtros || [];
+                        this.modificacoes = dados.modificacoes || [];
+                    });
+                },
+
+                // Method to reset all configuration
+                resetarConfiguracao() {
+                    if (confirm('Tem certeza que deseja resetar toda a configuração?')) {
+                        this.selectedRegister = null;
+                        this.filtros = [];
+                        this.modificacoes = [];
+                        this.adicionarAoLog('Configuração resetada com sucesso.');
+                    }
+                },
+
+                //-- ----------------------------------------------------------------------- -->
+                //--                                  LOGS                                   -->
+                //-- ----------------------------------------------------------------------- -->
                 destacarDiferencas(textoAtual, textoComparacao) {
                     const camposAtual = textoAtual.split('|');
                     const camposComparacao = textoComparacao.split('|');
@@ -1206,10 +1140,250 @@
                 },
                 limparLog() {
                     this.logOperacoes = '<span class="text-muted">Log limpo. Aguardando operações...</span>';
-                }
+                },
+
+
+                //-- ----------------------------------------------------------------------- -->
+                //--                                 ETAPAS                                  -->
+                //-- ----------------------------------------------------------------------- -->
+
+                // Métodos de navegação entre etapas
+                irPrimeira() {
+                    if (this.etapas.length > 0) {
+                        this.etapaAtual = 0;
+                        this.carregarEtapa(this.etapaAtual);
+                    }
+                },
+
+                etapaAnterior() {
+                    if (this.etapaAtual > 0) {
+                        this.etapaAtual--;
+                        this.carregarEtapa(this.etapaAtual);
+                    }
+                },
+
+                proximaEtapa() {
+                    if (this.etapaAtual < this.etapas.length - 1) {
+                        this.etapaAtual++;
+                        this.carregarEtapa(this.etapaAtual);
+                    }
+                },
+
+                irUltima() {
+                    if (this.etapas.length > 0) {
+                        this.etapaAtual = this.etapas.length - 1;
+                        this.carregarEtapa(this.etapaAtual);
+                    }
+                },
+
+                // Criar e gerenciar etapas
+                novaEtapa() {
+                    // // Salvar etapa atual antes de criar uma nova, se houver dados
+                    // this.salvarEtapaAtual();
+
+                    // // Criar uma nova etapa vazia
+                    // const novaEtapa = {
+                    //     nome: `Etapa ${this.etapas.length + 1}`,
+                    //     registro: null,
+                    //     filtros: [this.criarFiltroVazio()],
+                    //     modificacoes: [this.criarModificacaoVazia()]
+                    // };
+
+                    // // Adicionar à lista e definir como atual
+                    // this.etapas.push(novaEtapa);
+                    // this.etapaAtual = this.etapas.length - 1;
+
+                    // Limpar o formulário atual
+                    this.selectedRegister = null;
+                    this.etapaAtual = this.etapas.length; // Define a nova etapa como atual
+                    // this.limparFiltros();
+                    // this.limparModificacoes();
+
+                    this.adicionarLog('Nova etapa criada');
+                },
+
+                deletarEtapa() {
+                    if (this.etapas.length === 0) return;
+
+                    // Remover a etapa atual
+                    this.etapas.splice(this.etapaAtual, 1);
+
+                    // Ajustar o índice atual se necessário
+                    if (this.etapaAtual >= this.etapas.length && this.etapas.length > 0) {
+                        this.etapaAtual = this.etapas.length - 1;
+                    }
+
+                    // Carregar a etapa atual (se existir)
+                    if (this.etapas.length > 0) {
+                        this.carregarEtapa(this.etapaAtual);
+                    } else {
+                        // Limpar o formulário
+                        this.selectedRegister = null;
+                        this.limparFiltros();
+                        this.limparModificacoes();
+                    }
+
+                    this.adicionarLog('Etapa removida');
+                },
+
+                // Salvar o estado atual como uma etapa
+                salvarEtapaAtual() {
+                    if (!this.selectedRegister) return; // Nada para salvar
+
+                    const etapaAtualDados = {
+                        nome: `Etapa ${this.etapaAtual + 1}`,
+                        selectedRegister: this.selectedRegister,
+                        filtros: JSON.parse(JSON.stringify(this.filtros)),
+                        modificacoes: JSON.parse(JSON.stringify(this.modificacoes))
+                    };
+
+                    // Atualizar ou adicionar
+                    if (this.etapaAtual < this.etapas.length) {
+                        this.etapas[this.etapaAtual] = etapaAtualDados;
+                    } else {
+                        this.etapas.push(etapaAtualDados);
+                    }
+                },
+
+                // Carregar uma etapa
+                carregarEtapa(index) {
+                    if (index < 0 || index >= this.etapas.length) return;
+
+                    const etapa = this.etapas[index];
+                    // this.selectedRegister = etapa.registro;
+                    // this.filtros = JSON.parse(JSON.stringify(etapa.filtros));
+                    // this.modificacoes = JSON.parse(JSON.stringify(etapa.modificacoes));
+                    console.log('carregarEtapa', etapa);
+                    this.updateConfiguracao(etapa); // Atualiza a configuração com os dados da etapa
+
+                    this.adicionarLog(`Etapa ${index + 1} carregada`);
+                },
+
+                // Importar/Exportar etapas
+                exportarEtapas() {
+                    // Salvar estado atual antes de exportar
+                    this.salvarEtapaAtual();
+
+                    const conteudo = JSON.stringify(this.etapas, null, 2); // Bonitinho, indentado
+                    const blob = new Blob([conteudo], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'etapas_sped_' + new Date().toISOString().slice(0, 10) + '.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+
+                    this.adicionarLog('Etapas exportadas com sucesso');
+                },
+
+                // importarEtapas(event) {
+                //     const file = event.target.files[0];
+                //     if (!file) return;
+
+                //     const reader = new FileReader();
+                //     reader.onload = (e) => {
+                //         try {
+                //             const etapas = JSON.parse(e.target.result);
+                //             if (Array.isArray(etapas)) {
+                //                 this.etapas = etapas;
+                //                 this.etapaAtual = 0;
+
+                //                 if (this.etapas.length > 0) {
+                //                     this.carregarEtapa(0);
+                //                 }
+
+                //                 this.adicionarLog('Etapas importadas com sucesso');
+                //             }
+                //         } catch (err) {
+                //             this.adicionarLog('Erro ao importar etapas: ' + err.message, 'erro');
+                //         }
+                //     };
+                //     reader.readAsText(file);
+                //     event.target.value = null; // Reset para permitir importar o mesmo arquivo novamente
+                // },
+
+                // Processamento de etapas
+                processarEtapaAtual() {
+                    this.salvarEtapaAtual();
+                    this.processarArquivoSPED();
+                },
+
+                processarTodasEtapas() {
+                    // Salvar estado atual
+                    this.salvarEtapaAtual();
+
+                    // Armazenar o índice atual para restaurar depois
+                    const etapaOriginal = this.etapaAtual;
+
+                    // Processar cada etapa em sequência
+                    this.adicionarLog('Iniciando processamento de todas as etapas...');
+
+                    for (let i = 0; i < this.etapas.length; i++) {
+                        this.etapaAtual = i;
+                        this.carregarEtapa(i);
+                        this.processarArquivoSPED(false); // false para não recarregar o arquivo a cada etapa
+                    }
+
+                    // Restaurar a etapa original
+                    this.etapaAtual = etapaOriginal;
+                    this.carregarEtapa(etapaOriginal);
+
+                    this.adicionarLog('Processamento completo de todas as etapas');
+                },
+
+                // Utilitários para criar objetos vazios
+                criarFiltroVazio() {
+                    return {
+                        campoNome: null,
+                        indice: null,
+                        condicao: 'igual',
+                        valor: '',
+                        valorLista: ''
+                    };
+                },
+
+                criarModificacaoVazia() {
+                    return {
+                        campoNome: null,
+                        indice: null,
+                        operacao: 'fixo',
+                        valorFixo: '',
+                        campoCopiar: null,
+                        campoCalculo1: null,
+                        campoCalculo2: null,
+                        tipoCalculo: 'multiplicacao',
+                        usarConstante: true,
+                        constante: 1
+                    };
+                },
+
+                // Método para adicionar entradas ao log
+                adicionarLog(mensagem, tipo = 'info') {
+                    const data = new Date().toLocaleTimeString();
+                    const corClass = tipo === 'erro' ? 'text-danger' :
+                        tipo === 'aviso' ? 'text-warning' : 'text-info';
+
+                    this.logOperacoes += `<div class="${corClass}">[${data}] ${mensagem}</div>`;
+
+                    // Scrollar para o final do log
+                    setTimeout(() => {
+                        const logArea = document.querySelector('.log-area');
+                        if (logArea) {
+                            logArea.scrollTop = logArea.scrollHeight;
+                        }
+                    }, 50);
+                },
             },
             watch: {
                 selectedRegister(newValue) {
+                    // Permitir que o watcher seja ignorado quando necessário
+                    if (this.skipWatch) {
+                        this.skipWatch = false;
+                        return;
+                    }
+
                     // Limpar filtros e modificações quando mudar o registro
                     this.filtros = [];
                     this.modificacoes = [];
