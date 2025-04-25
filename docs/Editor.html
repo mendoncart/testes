@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Arquivos SPED</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <!-- Vue Select para dropdowns com busca -->
+    <link rel="stylesheet" href="https://unpkg.com/vue-select@3.0.0/dist/vue-select.css">
+    <script src="https://unpkg.com/vue-select@3.0.0/dist/vue-select.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .filter-row,
+        .modifier-row {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 4px solid #0d6efd;
+        }
+
+        .modifier-row {
+            border-left: 4px solid #198754;
+        }
+
+        .btn-add {
+            margin-bottom: 15px;
+        }
+
+        .v-select {
+            background-color: white;
+        }
+
+        .badge-register {
+            font-size: 1em;
+            padding: 5px 10px;
+        }
+
+        .operation-selector {
+            min-width: 120px;
+        }
+
+        .log-area {
+            font-family: monospace;
+            font-size: 0.9em;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 10px;
+        }
+
+        .input-file-custom {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .input-file-custom input[type="file"] {
+            cursor: pointer;
+            display: block;
+            font-size: 999px;
+            filter: alpha(opacity=0);
+            min-height: 100%;
+            min-width: 100%;
+            opacity: 0;
+            position: absolute;
+            right: 0;
+            text-align: right;
+            top: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Editor de Arquivos SPED CONTRIBUIÇÕES
+                </a>
+            </div>
+        </nav>
+
+        <div class="container-fluid">
+            <div class="row h-100">
+                <!-- Importação e log -->
+                <div class="col col-md-4 d-flex flex-column h-100">
+                    <!-- Área de importação e exportação -->
+                    <div class="card mb-2" style="flex-grow: 0;">
+                        <div class="card-header">
+                            <i class="bi bi-file-arrow-up-down me-2"></i>
+                            {{fileContent ? 'Arquivo Carregado' : 'Importar Arquivo'}}
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12" v-if="!fileContent">
+                                    <div class="d-grid">
+                                        <button class="btn btn-outline-primary input-file-custom">
+                                            <i class="bi bi-upload me-2"></i>
+                                            Importar Arquivo TXT
+                                            <input type="file" @change="handleFileUpload" accept=".txt">
+                                        </button>
+                                    </div>
+                                    <small class="text-muted mt-1" v-if="fileName">
+                                        Arquivo selecionado: {{ fileName }}
+                                    </small>
+                                </div>
+                                <div class="col-md-12" v-if="fileContent">
+                                    <div class="d-grid">
+                                        <button class="btn btn-outline-success" @click="downloadFile"
+                                            :disabled="!fileContent">
+                                            <i class="bi bi-download me-2"></i>
+                                            Baixar Arquivo Modificado
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log de operações -->
+                    <div class="card mb-2" style="flex-grow: 1;">
+                        <div class="card-header">
+                            <i class="bi bi-journal-code me-2"></i>
+                            Log de Operações
+                        </div>
+                        <div class="card-body">
+                            <div class="log-area" v-html="logOperacoes"></div>
+                            <div class="text-end mt-2">
+                                <button class="btn btn-sm btn-outline-secondary" @click="limparLog">
+                                    <i class="bi bi-eraser me-1"></i>
+                                    Limpar Log
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vizualização do Arquivo - Agora colapsável -->
+                    <div class="card" style="flex-grow: 1;">
+                        <div class="card-header" data-bs-toggle="collapse" data-bs-target="#fileViewerCollapse"
+                            role="button" aria-expanded="false" aria-controls="fileViewerCollapse"
+                            style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-text me-2"></i>
+                                    Visualização do Arquivo
+                                </div>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+                        </div>
+                        <div class="collapse" id="fileViewerCollapse">
+                            <div class="card-body">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" v-model="mostrarConteudoCompleto"
+                                        id="showFullContent">
+                                    <label class="form-check-label" for="showFullContent">
+                                        Mostrar conteúdo completo
+                                    </label>
+                                </div>
+                                <textarea v-model="conteudoVisualizado" class="form-control" rows="10"
+                                    readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuração de Edição -->
+                <div class="col-md-8 d-flex flex-column h-100">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-gear-fill me-2"></i>
+                                Configuração de Edição
+                            </div>
+
+                            <button class="btn btn-secondary btn-sm" @click="resetarConfiguracao"
+                                :disabled="!selectedRegister">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                Resetar Configuração
+                            </button>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <!-- Registro com destaque visual e tooltip -->
+                                    <label class="form-label">
+                                        <span class="text-primary fw-bold">Selecione o Registro:</span>
+                                        <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Selecione um registro para habilitar os filtros e modificações"></i>
+                                    </label>
+                                    <v-select v-model="selectedRegister" :options="registros"
+                                        placeholder="Selecione um registro" label="descricao" clearable="true"
+                                        class="register-selector border-primary">
+                                    </v-select>
+                                    <!-- Texto de ajuda -->
+                                    <small class="text-muted" v-if="!selectedRegister">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        Selecione um registro para continuar
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Filtros -->
+                            <div class="mb-4">
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5>
+                                        <i class="bi bi-funnel-fill me-2"></i>
+                                        Filtros
+                                        <span class="badge bg-secondary ms-2">{{ filtros.length }}</span>
+                                    </h5>
+                                    <button class="btn btn-outline-danger btn-sm" @click="limparFiltros"
+                                        v-show="filtros.length>1">
+                                        <i class="bi bi-trash me-1"></i>
+                                        Limpar Filtros
+                                    </button>
+                                </div>
+                                <p class="text-muted small">Defina condições para selecionar quais linhas serão
+                                    modificadas.
+                                </p>
+
+                                <div v-for="(filtro, index) in filtros" :key="'filtro-'+index" class="filter-row">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-4 mb-2">
+                                            <label class="form-label small">Campo:</label>
+                                            <v-select v-model="filtro.campoNome" :options="camposDisponiveis"
+                                                placeholder="Selecione um campo" @input="atualizarIndiceFiltro(index)">
+                                            </v-select>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label class="form-label small">Condição:</label>
+                                            <select v-model="filtro.condicao" class="form-select">
+                                                <option value="igual">É igual a</option>
+                                                <option value="diferente">É diferente de</option>
+                                                <option value="contém">Contém</option>
+                                                <option value="lista">Está na lista</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <label class="form-label small">Valor:</label>
+                                            <input v-if="filtro.condicao !== 'lista'" type="text" v-model="filtro.valor"
+                                                class="form-control">
+                                            <textarea v-else v-model="filtro.valorLista" class="form-control" rows="2"
+                                                placeholder="Valores separados por vírgula"></textarea>
+                                        </div>
+                                        <div class="col-md-1 mb-2 text-end">
+                                            <button class="btn btn-outline-danger btn-sm" @click="removerFiltro(index)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-outline-primary btn-sm mt-2" @click="adicionarFiltro"
+                                    :disabled="!selectedRegister">
+                                    <i class="bi bi-plus-circle me-1"></i> Adicionar Filtro
+                                </button>
+                            </div>
+
+                            <!-- Modificações -->
+                            <div class="mb-4">
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5>
+                                        <i class="bi bi-pencil-square me-2"></i>
+                                        Modificações
+                                        <span class="badge bg-secondary ms-2">{{ modificacoes.length }}</span>
+                                    </h5>
+                                    <button class="btn btn-outline-danger btn-sm" @click="limparModificacoes"
+                                        v-show="!modificacoes.length>1">
+                                        <i class="bi bi-trash me-1"></i>
+                                        Limpar Modificações
+                                    </button>
+                                </div>
+                                <p class="text-muted small">Defina as alterações que serão aplicadas nas linhas
+                                    selecionadas.
+                                </p>
+
+                                <div v-for="(mod, index) in modificacoes" :key="'mod-'+index" class="modifier-row">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-3 mb-2">
+                                            <label class="form-label small">Campo a modificar:</label>
+                                            <v-select v-model="mod.campoNome" :options="camposDisponiveis"
+                                                placeholder="Selecione um campo"
+                                                @input="atualizarIndiceModificacao(index)">
+                                            </v-select>
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <label class="form-label small">Operação:</label>
+                                            <select v-model="mod.operacao" class="form-select operation-selector">
+                                                <option value="fixo">Valor fixo</option>
+                                                <option value="copiar">Copiar campo</option>
+                                                <option value="calcular">Calcular</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Campos diferentes baseados na operação selecionada -->
+                                        <div v-if="mod.operacao === 'fixo'" class="col-md-6 mb-2">
+                                            <label class="form-label small">Valor fixo:</label>
+                                            <input type="text" v-model="mod.valorFixo" class="form-control">
+                                        </div>
+
+                                        <div v-else-if="mod.operacao === 'copiar'" class="col-md-6 mb-2">
+                                            <label class="form-label small">Copiar do campo:</label>
+                                            <v-select v-model="mod.campoCopiar" :options="camposDisponiveis"
+                                                placeholder="Selecione o campo de origem">
+                                            </v-select>
+                                        </div>
+
+                                        <div v-else-if="mod.operacao === 'calcular'" class="col-md-6 mb-2">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <label class="form-label small">Campo 1:</label>
+                                                    <v-select v-model="mod.campoCalculo1" :options="camposDisponiveis"
+                                                        placeholder="Campo 1">
+                                                    </v-select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label small">Operação:</label>
+                                                    <select v-model="mod.tipoCalculo" class="form-select">
+                                                        <option value="multiplicacao">Multiplicar</option>
+                                                        <option value="divisao">Dividir</option>
+                                                        <option value="soma">Somar</option>
+                                                        <option value="subtracao">Subtrair</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label small">Valor/Campo 2:</label>
+                                                    <div class="input-group">
+                                                        <input v-if="mod.usarConstante" type="number"
+                                                            v-model="mod.constante" class="form-control">
+                                                        <v-select v-else v-model="mod.campoCalculo2"
+                                                            :options="camposDisponiveis" placeholder="Campo 2">
+                                                        </v-select>
+                                                        <button class="btn btn-outline-secondary" type="button"
+                                                            @click="mod.usarConstante = !mod.usarConstante">
+                                                            <i
+                                                                :class="mod.usarConstante ? 'bi bi-calculator' : 'bi bi-textarea-t'"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-1 mb-2 text-end">
+                                            <button class="btn btn-outline-danger btn-sm"
+                                                @click="removerModificacao(index)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-outline-success btn-sm mt-2" @click="adicionarModificacao"
+                                    :disabled="!selectedRegister">
+                                    <i class="bi bi-plus-circle me-1"></i> Adicionar Modificação
+                                </button>
+                            </div>
+
+                            <!-- Botões de Aplicar e Resetar -->
+                            <div class="text-center mt-4">
+                                <button class="btn btn-primary" @click="processarArquivoSPED"
+                                    :disabled="!podeProcessar">
+                                    <i class="bi bi-lightning-charge-fill me-1"></i>
+                                    Aplicar Modificações
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Registrar o componente v-select
+        Vue.component('v-select', VueSelect.VueSelect);
+
+        // Função principal para editar registros SPED
+        function modificarRegistrosSPED(conteudoArquivo, codigoRegistro, filtros, modificacoes) {
+            // Dividir o arquivo em linhas
+            const linhas = conteudoArquivo.split('\n');
+
+            // Contador para rastrear quantas linhas foram modificadas
+            let contadorModificacoes = 0;
+
+            // Array para armazenar as linhas modificadas para log posterior
+            const linhasModificadas = [];
+
+            // Processar cada linha do arquivo
+            const resultado = linhas.map(linha => {
+                // Dividir a linha em campos usando o pipe como separador
+                const campos = linha.split('|');
+
+                // Verificar se essa linha é do registro que queremos modificar
+                if (campos[1] === codigoRegistro) {
+                    // Verificar se a linha atende a todas as condições de filtro
+                    const atendeFiltros = filtros.every(filtro => {
+                        if (filtro.indice === undefined || filtro.valor === undefined) return false;
+
+                        const valorCampo = campos[filtro.indice];
+
+                        // Tratar diferentes tipos de condições
+                        if (filtro.tipo === 'lista') {
+                            // Se o filtro é um array, verificar se o valor do campo está contido nele
+                            return filtro.valor.includes(valorCampo);
+                        } else if (filtro.tipo === 'igual') {
+                            return valorCampo === filtro.valor;
+                        } else if (filtro.tipo === 'diferente') {
+                            return valorCampo !== filtro.valor;
+                        } else if (filtro.tipo === 'contem') {
+                            return valorCampo.includes(filtro.valor);
+                        } else {
+                            // Caso contrário, comparar diretamente
+                            return valorCampo === filtro.valor;
+                        }
+                    });
+
+                    // Se a linha atende a todos os filtros, aplicar as modificações
+                    if (atendeFiltros) {
+                        // Guarda a linha original para log
+                        const linhaOriginal = linha;
+
+                        // Loga variável campos para debug
+                        // console.log('Campos antes da modificação:', JSON.stringify(campos, null, 2));
+                        // console.log('Modificações', JSON.stringify(modificacoes, null, 2));
+
+                        // Aplicar cada modificação especificada
+                        modificacoes.forEach(mod => {
+                            if (mod.tipo === 'fixo') {
+                                // Valor fixo
+                                campos[mod.indice] = String(mod.valor);
+                            } else if (mod.tipo === 'copiar') {
+                                // Copiar valor de outro campo
+                                campos[mod.indice] = campos[mod.campoOrigem];
+                            } else if (mod.tipo === 'calcular') {
+                                // Realizar operação matemática
+                                let resultado;
+                                const valor1 = campos[mod.campo1] ? parseFloat(campos[mod.campo1].replace(',', '.')) : 0;
+
+                                if (mod.usarCampo2) {
+                                    // Operação entre dois campos
+                                    const valor2 = campos[mod.campo2] ? parseFloat(campos[mod.campo2].replace(',', '.')) : 0;
+
+                                    switch (mod.operacao) {
+                                        case 'multiplicacao':
+                                            resultado = valor1 * valor2;
+                                            break;
+                                        case 'divisao':
+                                            resultado = valor1 / valor2;
+                                            break;
+                                        case 'soma':
+                                            resultado = valor1 + valor2;
+                                            break;
+                                        case 'subtracao':
+                                            resultado = valor1 - valor2;
+                                            break;
+                                        default:
+                                            resultado = valor1;
+                                    }
+                                } else {
+                                    // Operação com um valor constante
+                                    const constante = parseFloat(mod.constante);
+
+                                    switch (mod.operacao) {
+                                        case 'multiplicacao':
+                                            resultado = valor1 * constante;
+                                            break;
+                                        case 'divisao':
+                                            resultado = valor1 / constante;
+                                            break;
+                                        case 'soma':
+                                            resultado = valor1 + constante;
+                                            break;
+                                        case 'subtracao':
+                                            resultado = valor1 - constante;
+                                            break;
+                                        default:
+                                            resultado = valor1;
+                                    }
+                                }
+
+                                // Formatar o resultado conforme o formato original (com vírgula como separador decimal)
+                                campos[mod.indice] = resultado.toFixed(2).replace('.', ',');
+                            }
+                        });
+
+                        // Reconstruir a linha com as modificações aplicadas
+                        const linhaModificada = campos.join('|');
+
+                        // Adicionar ao array de linhas modificadas para log
+                        linhasModificadas.push({
+                            original: linhaOriginal,
+                            modificada: linhaModificada
+                        });
+
+                        contadorModificacoes++;
+                        return linhaModificada;
+                    }
+                }
+
+                // Se não atender aos critérios, retornar a linha sem modificações
+                return linha;
+            });
+
+            // Retornar o conteúdo do arquivo modificado e informações para log
+            return {
+                conteudoModificado: resultado.join('\n'),
+                totalModificacoes: contadorModificacoes,
+                linhasModificadas: linhasModificadas
+            };
+        }
+
+        new Vue({
+            el: '#app',
+            data: {
+                fileContent: '',
+                fileName: '',
+                selectedRegister: null,
+                selectedRegisterCodigo: null,
+                registros: [
+                    { codigo: 'C100', descricao: 'C100 - Nota Fiscal' },
+                    { codigo: 'C170', descricao: 'C170 - Item da Nota Fiscal' },
+                    { codigo: 'C190', descricao: 'C190 - Resumo da Nota Fiscal' },
+                    { codigo: '0200', descricao: '0200 - Identificação do Item' }
+                ],
+                estrutura: {
+                    'C100': {
+                        1: 'Registro',
+                        2: 'Tipo de operação',
+                        3: 'Indicador do emitente',
+                        4: 'Código do participante',
+                        5: 'Código do modelo do documento fiscal',
+                        6: 'Código da situação do documento fiscal',
+                        7: 'Série do documento fiscal',
+                        8: 'Número do documento fiscal',
+                        9: 'Chave da NF-e',
+                        10: 'Data de emissão do documento fiscal',
+                        11: 'Data de entrada/saída',
+                        12: 'Valor total do documento fiscal',
+                        13: 'Indicador do tipo de pagamento',
+                        14: 'Valor total do desconto',
+                        15: 'Abatimento não tributado',
+                        16: 'Valor das mercadorias',
+                        17: 'Indicador do tipo de frete/transporte',
+                        18: 'Valor do frete',
+                        19: 'Valor do seguro',
+                        20: 'Valor de outras despesas acessórias',
+                        21: 'VL_BC_ICMS',
+                        22: 'VL_ICMS',
+                        23: 'VL_BC_ICMS_ST',
+                        24: 'VL_ICMS_ST',
+                        25: 'VL_IPI',
+                        26: 'VL_PIS',
+                        27: 'VL_COFINS',
+                        28: 'VL_PIS_ST',
+                        29: 'VL_COFINS_ST'
+                    },
+                    'C170': {
+                        1: 'Registro',
+                        2: 'Nº sequencial do item',
+                        3: 'Cód Item',
+                        4: 'Desc. item',
+                        5: 'Qtd do item',
+                        6: 'Un do item',
+                        7: 'Valor total do item',
+                        8: 'Valor do desc.',
+                        9: 'Ind. movimentação',
+                        10: 'CST ICMS',
+                        11: 'CFOP',
+                        12: 'Cód. Nat. Op.',
+                        13: 'Valor BC ICMS',
+                        14: 'Alíquota ICMS',
+                        15: 'Valor ICMS',
+                        16: 'Valor BC ST',
+                        17: 'Alíquota ST',
+                        18: 'Valor ICMS ST',
+                        19: 'Ind. apuração IPI',
+                        20: 'CST IPI',
+                        21: 'Cód. Enq. IPI',
+                        22: 'Valor BC IPI',
+                        23: 'Alíquota IPI',
+                        24: 'Valor IPI',
+                        25: 'CST PIS',
+                        26: 'Valor BC PIS',
+                        27: 'Alíquota PIS (%)',
+                        28: 'Qtd BC PIS',
+                        29: 'Alíquota PIS (R$)',
+                        30: 'Valor PIS',
+                        31: 'CST COFINS',
+                        32: 'Valor BC COFINS',
+                        33: 'Alíquota COFINS (%)',
+                        34: 'Qtd BC COFINS',
+                        35: 'Alíquota COFINS (R$)',
+                        36: 'Valor COFINS',
+                        37: 'Cód. conta analítica'
+                    },
+                },
+                filtros: [],
+                modificacoes: [],
+                mostrarConteudoCompleto: false,
+                logOperacoes: '<span class="text-muted">Aguardando operações...</span>',
+                processadoUltimo: null
+            },
+            computed: {
+                camposDisponiveis() {
+                    if (!this.selectedRegisterCodigo || !this.estrutura[this.selectedRegisterCodigo]) {
+                        return [];
+                    }
+
+                    const campos = this.estrutura[this.selectedRegisterCodigo];
+                    return Object.keys(campos).map(indice => ({
+                        label: campos[indice],
+                        indice: parseInt(indice)
+                    }));
+                },
+                podeProcessar() {
+                    return this.fileContent &&
+                        this.selectedRegisterCodigo &&
+                        this.filtros.length > 0 &&
+                        this.modificacoes.length > 0;
+                },
+                conteudoVisualizado() {
+                    if (!this.fileContent) return '';
+
+                    if (this.mostrarConteudoCompleto) {
+                        return this.fileContent;
+                    } else {
+                        // Mostrar apenas os primeiros 5 e últimos 5 registros
+                        const linhas = this.fileContent.split('\n');
+                        if (linhas.length <= 10) return this.fileContent;
+
+                        const primeirasLinhas = linhas.slice(0, 5);
+                        const ultimasLinhas = linhas.slice(-5);
+
+                        return [...primeirasLinhas, '...', `(${linhas.length - 10} linhas omitidas)`, '...', ...ultimasLinhas].join('\n');
+                    }
+                }
+            },
+            mounted() {
+                // Verifica se o navegador suporta File API
+                if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
+                    alert('Seu navegador não suporta a API de arquivos. Por favor, use um navegador moderno.');
+                }
+
+                // Initialize all tooltips
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                });
+
+            },
+            methods: {
+                /**
+                 * Carrega o conteúdo de um arquivo de texto a partir do caminho especificado
+                 * @param {string} filePath - Caminho completo do arquivo a ser carregado
+                 * @returns {Promise} - Promise que resolve com o conteúdo do arquivo ou rejeita com erro
+                 */
+                async loadFile(filePath) {
+                    // Esta função carrega o conteúdo de um arquivo específico quando recebe o local do arquivo
+                    try {
+                        // Verifica se estamos usando a File System Access API (ambiente moderno)
+                        if (window.FileSystemFileHandle) {
+                            // Obter o manipulador para o arquivo especificado
+                            const fileHandle = await filePath.getFile();
+                            // Ler o conteúdo do arquivo como texto
+                            const fileData = await fileHandle.text();
+                            // Atualizar o conteúdo do arquivo na aplicação
+                            this.fileContent = fileData;
+                            console.log('Arquivo carregado com sucesso usando File System Access API');
+                        }
+                        // Caso contrário, usamos fetch para carregar o arquivo (abordagem mais tradicional)
+                        else {
+                            const response = await fetch(filePath);
+                            // Verificar se a resposta foi bem-sucedida
+                            if (!response.ok) {
+                                throw new Error('Erro ao carregar o arquivo: ' + response.statusText);
+                            }
+                            // Ler o conteúdo do arquivo como texto
+                            const data = await response.text();
+                            // Atualizar o conteúdo do arquivo na aplicação
+                            this.fileContent = data;
+                            console.log('Arquivo carregado com sucesso usando fetch');
+                        }
+                    } catch (error) {
+                        // Tratamento de erros ao carregar o arquivo
+                        console.error('Erro ao carregar o arquivo:', error);
+                        alert('Não foi possível carregar o arquivo: ' + error.message);
+                    }
+                },
+
+                /**
+                 * Verifica se existe um arquivo com 'sped' no nome na pasta selecionada
+                 * e carrega automaticamente se encontrar
+                 * @returns {Promise} - Promise que resolve quando o processo termina
+                */
+                async checkForSpedFile() {
+                    // Esta função verifica se existe um arquivo contendo 'sped' no nome na mesma pasta
+                    // e chama a função de carregamento se encontrar
+                    try {
+                        // Solicitar ao usuário que selecione a pasta para buscar o arquivo
+                        const dirHandle = await window.showDirectoryPicker();
+                        let spedFiles = [];
+
+                        // Percorrer todos os arquivos na pasta selecionada
+                        for await (const entry of dirHandle.values()) {
+                            // Verificar se é um arquivo e se contém 'sped' no nome e termina com '.txt'
+                            if (entry.kind === 'file' &&
+                                entry.name.toLowerCase().includes('sped') &&
+                                entry.name.toLowerCase().endsWith('.txt')) {
+                                // Adicionar o arquivo encontrado à lista
+                                spedFiles.push(entry);
+                            }
+                        }
+
+                        // Verificar se encontrou algum arquivo SPED
+                        if (spedFiles.length === 0) {
+                            // Nenhum arquivo SPED encontrado
+                            console.error('Nenhum arquivo SPED.txt encontrado');
+                            alert('Nenhum arquivo SPED.txt encontrado na pasta selecionada');
+                            return;
+                        }
+
+                        // Verificar se encontrou mais de um arquivo SPED
+                        if (spedFiles.length > 1) {
+                            // Múltiplos arquivos SPED encontrados
+                            console.error('Múltiplos arquivos SPED.txt encontrados. Por favor, mantenha apenas um arquivo.');
+                            alert('Foram encontrados vários arquivos SPED. Selecione apenas um para continuar.');
+
+                            // Opcionalmente, podemos permitir ao usuário escolher qual arquivo deseja usar
+                            // Aqui estamos simplesmente pegando o primeiro por simplicidade
+                        }
+
+                        // Carregar o primeiro arquivo SPED encontrado
+                        await this.loadFile(spedFiles[0]);
+
+                    } catch (error) {
+                        // Tratamento de erros ao procurar arquivos SPED
+                        console.error('Erro ao procurar arquivos SPED:', error);
+                        alert('Erro ao procurar arquivos SPED: ' + error.message);
+                    }
+                },
+
+
+                /**
+                 * Manipula o evento quando um arquivo é selecionado pelo input file
+                 * @param {Event} event - O evento do input file
+                 */
+                handleFileUpload(event) {
+                    // Esta função intercepta o evento quando o usuário seleciona um arquivo usando o seletor de arquivos
+                    // e chama a função de carregamento
+
+                    // Obter o arquivo selecionado pelo usuário
+                    const file = event.target.files[0];
+
+                    // Verificar se um arquivo foi selecionado e se é do tipo texto
+                    if (file && file.type === 'text/plain') {
+                        // Criar um novo leitor de arquivo
+                        const reader = new FileReader();
+
+                        // Definir o que acontece quando o arquivo é carregado
+                        reader.onload = () => {
+                            // Atualizar o conteúdo do arquivo na aplicação
+                            this.fileContent = reader.result;
+                            console.log('Arquivo carregado com sucesso:', file.name);
+                        };
+
+                        // Ler o conteúdo do arquivo como texto
+                        reader.readAsText(file);
+                    } else {
+                        // Alertar o usuário se nenhum arquivo foi selecionado ou se não é um arquivo de texto
+                        alert('Por favor, selecione um arquivo .txt');
+                    }
+                },
+
+
+                // Baixa o conteúdo de fileContent como um arquivo .txt
+                downloadFile() {
+                    // Esta função baixa o conteúdo do textarea como um arquivo .txt
+                    const blob = new Blob([this.fileContent], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'arquivo_modificado.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+
+
+
+
+
+                // processarArquivoSPED() {
+                //     const filtrosTeste = [
+                //         { campo: 11, valor: ["1410", "1411", "2201", "2202"] }, // Campo 11 deve ser "1410" ou "1411"
+                //         { campo: 25, valor: "06" },             // Campo 25 deve ser "06"
+                //         { campo: 31, valor: "06" }              // Campo 31 deve ser "06"
+                //     ];
+
+                //     const modificacoesTeste = [
+                //         { campo: 25, valor: "73" },  // Alterar campo 25 para "73"
+                //         { campo: 31, valor: "73" }   // Alterar campo 31 para "73"
+                //     ];
+
+                //     // Aplicar as modificações
+                //     const resultadoTeste = this.editarSPED(this.fileContent, "C170", filtrosTeste, modificacoesTeste);
+
+                //     // Atualiza o resultado
+                //     this.fileContent = resultadoTeste;
+                // },
+
+                // Função para ajudar a preparar os filtros e modificações
+                editarSPED(conteudoArquivo, registro, filtros, modificacoes) {
+                    // Converter filtros para o formato esperado pela função principal
+                    const filtrosProcessados = filtros.map(filtro => {
+                        return {
+                            indice: filtro.campo,
+                            valor: filtro.valor
+                        };
+                    });
+
+                    // Converter modificações para o formato esperado pela função principal
+                    const modificacoesProcessadas = modificacoes.map(mod => {
+                        return {
+                            indice: mod.campo,
+                            valor: mod.valor
+                        };
+                    });
+
+                    // Chamar a função principal
+                    return this.modificarRegistrosSPED(conteudoArquivo, registro, filtrosProcessados, modificacoesProcessadas);
+                },
+
+                // Função para processar e modificar registros SPED
+                modificarRegistrosSPED(conteudoArquivo, codigoRegistro, filtros, modificacoes) {
+                    // Dividir o arquivo em linhas
+                    const linhas = conteudoArquivo.split('\n');
+
+                    // Contador para rastrear quantas linhas foram modificadas
+                    let contadorModificacoes = 0;
+
+                    // Array para armazenar as linhas modificadas para log posterior
+                    const linhasModificadas = [];
+
+                    // Processar cada linha do arquivo
+                    const resultado = linhas.map(linha => {
+                        // Dividir a linha em campos usando o pipe como separador
+                        const campos = linha.split('|');
+
+                        // Verificar se essa linha é do registro que queremos modificar
+                        if (campos[1] === codigoRegistro) {
+                            // Verificar se a linha atende a todas as condições de filtro
+                            const atendeFiltros = filtros.every(filtro => {
+                                const valorCampo = campos[filtro.indice];
+
+                                // Tratar diferentes tipos de condições
+                                if (Array.isArray(filtro.valor)) {
+                                    // Se o filtro é um array, verificar se o valor do campo está contido nele
+                                    return filtro.valor.includes(valorCampo);
+                                } else {
+                                    // Caso contrário, comparar diretamente
+                                    return valorCampo === filtro.valor;
+                                }
+                            });
+
+                            // Se a linha atende a todos os filtros, aplicar as modificações
+                            if (atendeFiltros) {
+                                // Guarda a linha original para log
+                                const linhaOriginal = linha;
+
+                                // Aplicar cada modificação especificada
+                                modificacoes.forEach(mod => {
+                                    if (typeof mod.valor === 'string' || typeof mod.valor === 'number') {
+                                        // Valor fixo
+                                        campos[mod.indice] = String(mod.valor);
+                                    } else if (typeof mod.valor === 'object' && mod.valor.tipo === 'campo') {
+                                        // Copiar valor de outro campo
+                                        campos[mod.indice] = campos[mod.valor.origem];
+                                    } else if (typeof mod.valor === 'object' && mod.valor.tipo === 'operacao') {
+                                        // Realizar operação matemática
+                                        let resultado;
+                                        const valor1 = parseFloat(campos[mod.valor.campo1].replace(',', '.'));
+
+                                        if (mod.valor.campo2 !== undefined) {
+                                            // Operação entre dois campos
+                                            const valor2 = parseFloat(campos[mod.valor.campo2].replace(',', '.'));
+
+                                            switch (mod.valor.operacao) {
+                                                case 'multiplicacao':
+                                                    resultado = valor1 * valor2;
+                                                    break;
+                                                case 'divisao':
+                                                    resultado = valor1 / valor2;
+                                                    break;
+                                                case 'soma':
+                                                    resultado = valor1 + valor2;
+                                                    break;
+                                                case 'subtracao':
+                                                    resultado = valor1 - valor2;
+                                                    break;
+                                                default:
+                                                    resultado = valor1;
+                                            }
+                                        } else if (mod.valor.constante !== undefined) {
+                                            // Operação com um valor constante
+                                            const constante = parseFloat(mod.valor.constante);
+
+                                            switch (mod.valor.operacao) {
+                                                case 'multiplicacao':
+                                                    resultado = valor1 * constante;
+                                                    break;
+                                                case 'divisao':
+                                                    resultado = valor1 / constante;
+                                                    break;
+                                                case 'soma':
+                                                    resultado = valor1 + constante;
+                                                    break;
+                                                case 'subtracao':
+                                                    resultado = valor1 - constante;
+                                                    break;
+                                                default:
+                                                    resultado = valor1;
+                                            }
+                                        }
+
+                                        // Formatar o resultado conforme o formato original (com vírgula como separador decimal)
+                                        campos[mod.indice] = resultado.toFixed(2).replace('.', ',');
+                                    }
+                                });
+
+                                // Reconstruir a linha com as modificações aplicadas
+                                const linhaModificada = campos.join('|');
+
+                                // Adicionar ao array de linhas modificadas para log
+                                linhasModificadas.push({
+                                    original: linhaOriginal,
+                                    modificada: linhaModificada
+                                });
+
+                                contadorModificacoes++;
+                                return linhaModificada;
+                            }
+                        }
+
+                        // Retornar o conteúdo do arquivo modificado e informações para log
+                        return {
+                            conteudoModificado: resultado.join('\n'),
+                            totalModificacoes: contadorModificacoes,
+                            linhasModificadas: linhasModificadas
+                        };
+                    });
+
+                    // Registrar as modificações no console
+                    console.log(`Total de ${contadorModificacoes} registros ${codigoRegistro} modificados.`);
+
+                    // Mostrar detalhes das linhas modificadas
+                    // if (linhasModificadas.length > 0) {
+                    //     console.log("\nLinhas modificadas:");
+                    //     linhasModificadas.forEach((item, indice) => {
+                    //         console.log(`\nModificação ${indice + 1}:`);
+                    //         console.log("Original: " + item.original);
+                    //         console.log("Modificada: " + item.modificada);
+                    //     });
+                    // }
+
+                    // Bootstrap toast para mostrar que a linha foi ou não modificada
+                    let mensagem = `Total de modificações: ${contadorModificacoes}. Linhas modificadas: ${linhasModificadas.join(', ')}`;
+                    alert(mensagem);
+
+                    // Retornar o conteúdo do arquivo modificado
+                    return resultado.join('\n');
+
+
+                },
+
+                processarArquivoSPED() {
+                    if (!this.fileContent || !this.selectedRegisterCodigo) {
+                        alert('Selecione um arquivo e um tipo de registro para processar.');
+                        return;
+                    }
+
+                    // Preparar filtros
+                    const filtrosProcessados = this.filtros.map(filtro => {
+                        let valorFinal = filtro.valor;
+                        let tipoFinal = filtro.condicao;
+
+                        // Se for do tipo lista, converter a string em array
+                        if (filtro.condicao === 'lista') {
+                            valorFinal = filtro.valorLista.split(',').map(v => v.trim());
+                            tipoFinal = 'lista';
+                        }
+
+                        return {
+                            indice: filtro.campo,
+                            valor: valorFinal,
+                            tipo: tipoFinal
+                        };
+                    });
+
+                    // Preparar modificações
+                    const modificacoesProcessadas = this.modificacoes.map(mod => {
+                        if (mod.operacao === 'fixo') {
+                            return {
+                                indice: mod.campo,
+                                tipo: 'fixo',
+                                valor: mod.valorFixo
+                            };
+                        } else if (mod.operacao === 'copiar') {
+                            //const campoOrigem = this.camposDisponiveis.find(c => c.label === mod.campoCopiar.label);
+                            return {
+                                indice: mod.campo,
+                                tipo: 'copiar',
+                                campoOrigem: mod.campoCopiar ? mod.campoCopiar.indice : null
+                                //campoOrigem: campoOrigem ? campoOrigem.indice : null
+                            };
+                        } else if (mod.operacao === 'calcular') {
+                            // const campo1 = this.camposDisponiveis.find(c => c.label === mod.campoCalculo1);
+                            // const campo2 = this.camposDisponiveis.find(c => c.label === mod.campoCalculo2);
+
+                            return {
+                                indice: mod.campo,
+                                tipo: 'calcular',
+                                // campo1: campo1 ? campo1.indice : null,
+                                campo1: mod.campoCalculo1 ? mod.campoCalculo1.indice : null,
+                                operacao: mod.tipoCalculo,
+                                usarCampo2: !mod.usarConstante,
+                                //campo2: campo2 ? campo2.indice : null,
+                                campo2: mod.campoCalculo2 ? mod.campoCalculo2.indice : null,
+                                constante: parseFloat(mod.constante)
+                            };
+                        }
+                    });
+
+                    // console.log('filtrosProcessados', JSON.stringify(filtrosProcessados, null, 2));
+                    // console.log('modificacoesProcessadas', JSON.stringify(modificacoesProcessadas, null, 2));
+
+                    // Executar a modificação
+                    const resultado = modificarRegistrosSPED(
+                        this.fileContent,
+                        this.selectedRegisterCodigo,
+                        filtrosProcessados,
+                        modificacoesProcessadas
+                    );
+
+                    // Atualizar o conteúdo do arquivo e mostrar log
+                    this.fileContent = resultado.conteudoModificado;
+                    this.processadoUltimo = resultado;
+
+                    // Adicionar ao log
+                    this.adicionarAoLog(`<strong class="text-success">Processamento concluído!</strong> Modificados ${resultado.totalModificacoes} registros do tipo ${this.selectedRegisterCodigo}.`);
+                    
+                    let mensagem = `Modificados ${resultado.totalModificacoes} registros do tipo ${this.selectedRegisterCodigo}.`;
+                    alert(mensagem);
+
+                    // Adicionar detalhes das modificações ao log
+                    if (resultado.linhasModificadas.length > 0) {
+                        resultado.linhasModificadas.forEach((mod, idx) => {
+                            this.adicionarAoLog(`<hr><details>
+                                <summary><span class="badge bg-info">Modificação ${idx + 1}</span></summary>
+                                <div class="mt-2">
+                                    <strong>Original:</strong><br>
+                                    <code>${this.destacarDiferencas(mod.original, mod.modificada)}</code><br><br>
+                                    <strong>Modificada:</strong><br>
+                                    <code>${this.destacarDiferencas(mod.modificada, mod.original)}</code>
+                                </div>
+                            </details>`);
+                        });
+                    }
+                },
+
+                // Method to reset all configuration
+                resetarConfiguracao() {
+                    if (confirm('Tem certeza que deseja resetar toda a configuração?')) {
+                        this.selectedRegister = null;
+                        this.filtros = [];
+                        this.modificacoes = [];
+                        this.adicionarAoLog('Configuração resetada com sucesso.');
+                    }
+                },
+                adicionarFiltro() {
+                    this.filtros.push({
+                        campoNome: null,
+                        campo: null,
+                        condicao: 'igual',
+                        valor: '',
+                        valorLista: '',
+                        tipo: 'igual'
+                    });
+                },
+                removerFiltro(index) {
+                    this.filtros.splice(index, 1);
+                },
+                // Method to clear all filters
+                limparFiltros() {
+                    // Add confirmation for safety
+                    if (this.filtros.length > 0) {
+                        if (confirm('Tem certeza que deseja limpar todos os filtros?')) {
+                            this.filtros = [];
+                            this.adicionarAoLog('Todos os filtros foram removidos.');
+                        }
+                    }
+                },
+                adicionarModificacao() {
+                    this.modificacoes.push({
+                        campoNome: null,
+                        campo: null,
+                        operacao: 'fixo',
+                        valorFixo: '',
+                        campoCopiar: null,
+                        campoCalculo1: null,
+                        tipoCalculo: 'multiplicacao',
+                        usarConstante: true,
+                        constante: 1,
+                        campoCalculo2: null
+                    });
+                },
+                removerModificacao(index) {
+                    this.modificacoes.splice(index, 1);
+                },
+                // Method to clear all modifications
+                limparModificacoes() {
+                    if (this.modificacoes.length > 0) {
+                        if (confirm('Tem certeza que deseja limpar todas as modificações?')) {
+                            this.modificacoes = [];
+                            this.adicionarAoLog('Todas as modificações foram removidas.');
+                        }
+                    }
+                },
+                atualizarIndiceFiltro(index) {
+                    const filtro = this.filtros[index];
+                    if (filtro.campoNome) {
+                        const campoEncontrado = this.camposDisponiveis.find(c => c.label === filtro.campoNome.label);
+                        if (campoEncontrado) {
+                            filtro.campo = campoEncontrado.indice;
+                        }
+                    }
+                },
+                atualizarIndiceModificacao(index) {
+                    const mod = this.modificacoes[index];
+                    if (mod.campoNome) {
+                        const campoEncontrado = this.camposDisponiveis.find(c => c.label === mod.campoNome?.label);
+                        if (campoEncontrado) {
+                            mod.campo = campoEncontrado.indice;
+                        }
+
+                        const campo1Encontrado = this.camposDisponiveis.find(c => c.label === mod.campoCopiar?.label);
+                        if (campo1Encontrado) {
+                            mod.campoCalculo1 = campo1Encontrado.indice;
+                        }
+
+                        const campo2Encontrado = this.camposDisponiveis.find(c => c.label === mod.campoCopiar?.label);
+                        if (campo2Encontrado) {
+                            mod.campoCalculo2 = campo2Encontrado.indice;
+                        }
+                    }
+                },
+
+
+
+                destacarDiferencas(textoAtual, textoComparacao) {
+                    const camposAtual = textoAtual.split('|');
+                    const camposComparacao = textoComparacao.split('|');
+
+                    // Criar array com campos destacados quando diferentes
+                    return camposAtual.map((campo, index) => {
+                        if (index < camposComparacao.length && campo !== camposComparacao[index]) {
+                            return `<span class="bg-warning">${campo}</span>`;
+                        }
+                        return campo;
+                    }).join('|');
+                },
+                adicionarAoLog(mensagem) {
+                    const dataHora = new Date().toLocaleTimeString();
+                    this.logOperacoes = `<div class="mb-2"><span class="text-secondary">[${dataHora}]</span> ${mensagem}</div>` + this.logOperacoes;
+                },
+                limparLog() {
+                    this.logOperacoes = '<span class="text-muted">Log limpo. Aguardando operações...</span>';
+                }
+            },
+            watch: {
+                selectedRegister(newValue) {
+                    // Limpar filtros e modificações quando mudar o registro
+                    this.filtros = [];
+                    this.modificacoes = [];
+
+                    if (newValue) {
+                        // Atualiza o código
+                        this.selectedRegisterCodigo = newValue.codigo;
+
+                        // Adiciona ao log
+                        this.adicionarAoLog(`Registro <span class="badge bg-primary">${this.selectedRegisterCodigo}</span> selecionado. Campos carregados.`);
+                    } else {
+                        // Se não houver registro, limpa o código
+                        this.selectedRegisterCodigo = null;
+                    }
+                }
+            },
+            mounted() {
+                // Adicionar alguns exemplos iniciais para facilitar o uso
+                //this.adicionarFiltro();
+                //this.adicionarModificacao();
+
+                this.adicionarAoLog('<span class="text-primary"><i class="bi bi-info-circle"></i> Bem-vindo ao Editor de Arquivos SPED!</span> Importe um arquivo para começar.');
+            }
+        });
+    </script>
+</body>
+
+</html>
